@@ -73,8 +73,9 @@ function generateRandomGame(): {
   // ---- Step 1: 生成场况（逻辑一致） ----
   let isRiichi = Math.random() < 0.3;
   let isDoubleRiichi = !isRiichi && Math.random() < 0.1;
+  // 是否自摸
   const isTsumo = Math.random() < 0.5;
-  let isIppatsu = (isRiichi || isDoubleRiichi) && Math.random() < 0.3;
+  // 立直或双立直，一定是门清
   let isMenzen = isRiichi || isDoubleRiichi;
 
   let isHaitei = false,
@@ -92,6 +93,9 @@ function generateRandomGame(): {
     if (r < 0.15) isHoutei = true;
     else if (r < 0.3 && !isMenzen) isChankan = true; // 立直时不能抢杠（抢杠需要加杠=明杠）
   }
+
+    // 一发的条件：立直或双立直，且不是岭上开花/抢杠
+   let isIppatsu = (isRiichi || isDoubleRiichi) && !isRinshan && !isChankan && Math.random() < 0.3;
 
   // ---- Step 2: 生成4面子+1雀头 ----
   interface GenMentsu {
