@@ -1,4 +1,5 @@
 import { HashRouter, Routes, Route, NavLink } from "react-router-dom";
+import {MarkGithubIcon} from '@primer/octicons-react'
 import { ToastProvider } from "./components/Toast/ToastContext";
 import PointCalc from "./features/pointCalc/PointCalc";
 import Shanten from "./features/shanten/Shanten";
@@ -15,6 +16,9 @@ function App() {
               <div className="app-brand">
                 <span className="app-logo">🀄</span>
                 <h1>立直麻将训练器</h1>
+                <a href="https://github.com/NECionpy/riichi-mahjong-trainer" target="_blank" rel="noopener noreferrer">
+                  <MarkGithubIcon />
+                </a>
               </div>
               <nav className="app-nav">
                 <NavLink
