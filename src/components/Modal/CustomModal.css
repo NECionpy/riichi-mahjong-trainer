@@ -1,0 +1,77 @@
+/* ---- 弹窗遮罩 ---- */
+.custom-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+
+/* ---- 弹窗主体 ---- */
+.custom-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+  animation: refModalIn 0.25s ease-out;
+}
+
+@keyframes refModalIn {
+  from { opacity: 0; transform: translateY(-16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ---- 弹窗头部 ---- */
+.custom-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.custom-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #212529;
+}
+
+.custom-modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f1f3f5;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.custom-modal-close:hover {
+  background: #dee2e6;
+}
+
+/* ---- 响应式 ---- */
+@media (max-width: 640px) {
+  .custom-modal {
+    max-height: 95vh;
+    border-radius: 8px;
+  }
+
+  .custom-modal-body {
+    padding: 12px;
+  }
+
+}

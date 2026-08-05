@@ -1,0 +1,99 @@
+.tile-selector {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.tile-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.tile-selector-modes {
+  display: flex;
+  gap: 8px;
+}
+
+.mode-btn {
+  padding: 8px 16px;
+  border: 1px solid #dee2e6;
+  background: #f8f9fa;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-btn:hover {
+  background: #e9ecef;
+}
+
+.mode-btn.active {
+  background: #0f3460;
+  color: white;
+  border-color: #0f3460;
+}
+
+.tile-selector-count {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.tile-selector-text {
+  display: flex;
+  gap: 8px;
+}
+
+.tile-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.tile-input:focus {
+  outline: none;
+  border-color: #0f3460;
+}
+
+.submit-btn {
+  padding: 8px 24px;
+  background: #0f3460;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submit-btn:hover {
+  background: #1a5276;
+}
+
+.tile-selector-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tile-suit-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.suit-label {
+  font-weight: bold;
+  font-size: 16px;
+  min-width: 40px;
+  color: #495057;
+}
+
+.suit-tiles {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}

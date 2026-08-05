@@ -1,0 +1,70 @@
+# Node modules
+node_modules/
+
+# Production build
+dist/
+build/
+.vite/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Editor directories and files
+.vscode/
+.idea/
+.fleet/
+.trae/
+.cursor/
+.codex
+.cortex/
+.kiro/
+.claude/
+.windsurf/
+.cline/
+.roo/
+.continue/
+.DS_Store
+Thumbs.db
+
+# AI cache / index
+.ai/
+.ai-cache/
+.ai-index/
+.agent/
+.agents/
+.agent-cache/
+
+# Vector database
+.chroma/
+.chromadb/
+.lancedb/
+
+# TypeScript
+*.tsbuildinfo
+
+# Coverage
+coverage/
+
+# Temporary and generated files
+temp/
+temp_images/
+.tmp/
+worktrees/
+.make/
+
+# OS files
+desktop.ini
+
+# Optional: lockfiles (uncomment if you don't want to commit lockfiles)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
