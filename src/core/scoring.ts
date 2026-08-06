@@ -111,7 +111,7 @@ function isDoraYaku(name: string): boolean {
 // 符数计算
 // ============================================================
 
-function calculateFu(hand: Hand, decomposition: MeldDecomposition, gameContext: GameContext): { fu: number; breakdown: FuBreakdown } {
+function calculateFu(hand: Hand, decomposition: MeldDecomposition, gameContext: GameContext): { fu: number; fuSubtotalBefore: number; breakdown: FuBreakdown } {
   const items: FuBreakdownItem[] = [];
   let fu = 0;
 
@@ -206,13 +206,13 @@ function calculateFu(hand: Hand, decomposition: MeldDecomposition, gameContext: 
 	}
 
   // 小计（向上取整前）
-  const subtotalBefore = fu;
-  items.push({ label: '小计', fu: subtotalBefore, type: 'subtotal' });
+  const fuSubtotalBefore = fu;
+  items.push({ label: '小计', fu: fuSubtotalBefore, type: 'subtotal' });
 
   // 向上取整到10的倍数
   fu = Math.ceil(fu / 10) * 10;
-  if (fu !== subtotalBefore) {
-    items.push({ label: `向上取整 (${subtotalBefore} → ${fu})`, fu: fu, type: 'rounding' });
+  if (fu !== fuSubtotalBefore) {
+    items.push({ label: `向上取整 (${fuSubtotalBefore} → ${fu})`, fu: fu, type: 'rounding' });
   }
 
   // 非门清和牌最低30符（平和自摸=20符在 calculateScore 中处理）
@@ -228,7 +228,7 @@ function calculateFu(hand: Hand, decomposition: MeldDecomposition, gameContext: 
     items.push({ label: `门清荣和最低符调整 (${before} → 30)`, fu: 30, type: 'floor' });
   }
 
-  return { fu, breakdown: { items } };
+  return { fu, fuSubtotalBefore, breakdown: { items } };
 }
 
 /** 描述一张牌（用于符数分解展示） */
@@ -1030,6 +1030,7 @@ function roundUp100(n: number): number {
 
 export function calculateScore(hand: Hand, gameContext: GameContext): ScoringResult {
   const allTiles = [...hand.handTiles, hand.winningTile, ...hand.melds.flatMap(m => m.tiles)];
+  // 是否门清
   const isMenzen = !hand.melds.some(m => m.isOpen);
 
   let fu: number;
@@ -1039,6 +1040,7 @@ export function calculateScore(hand: Hand, gameContext: GameContext): ScoringRes
   // 收集所有可能的解释（特殊牌型 + 普通分解），选择最高番数
   type CandidateResult = {
     fu: number;
+    fuSubtotalBefore: number;
     fuBreakdown: FuBreakdown;
     decomp: MeldDecomposition;
     yaku: Yaku[];
@@ -1053,6 +1055,7 @@ export function calculateScore(hand: Hand, gameContext: GameContext): ScoringRes
     const chiitoiFormalHan = chiitoiYaku.filter(y => !isDoraYaku(y.name)).reduce((s, y) => s + y.han, 0);
     candidates.push({
       fu: 25,
+      fuSubtotalBefore: 25,
       fuBreakdown: { items: [], specialNote: '七对子固定25符' },
       decomp: chiitoiDecomp,
       yaku: chiitoiYaku,
@@ -1067,6 +1070,7 @@ export function calculateScore(hand: Hand, gameContext: GameContext): ScoringRes
     const kokushiFormalHan = kokushiYaku.filter(y => !isDoraYaku(y.name)).reduce((s, y) => s + y.han, 0);
     candidates.push({
       fu: 30,
+      fuSubtotalBefore: 30,
       fuBreakdown: { items: [], specialNote: '国士无双固定30符' },
       decomp: kokushiDecomp,
       yaku: kokushiYaku,
@@ -1080,7 +1084,8 @@ export function calculateScore(hand: Hand, gameContext: GameContext): ScoringRes
     const chuurenYaku = detectYaku(hand, chuurenDecomp, gameContext, allTiles);
     const chuurenFormalHan = chuurenYaku.filter(y => !isDoraYaku(y.name)).reduce((s, y) => s + y.han, 0);
     candidates.push({
-      fu: 30,
+      fu: 30, 
+      fuSubtotalBefore: 30,
       fuBreakdown: { items: [], specialNote: '九莲宝灯固定30符' },
       decomp: chuurenDecomp,
       yaku: chuurenYaku,
@@ -1099,7 +1104,7 @@ export function calculateScore(hand: Hand, gameContext: GameContext): ScoringRes
         .filter(y => !isDoraYaku(y.name))
         .reduce((sum, y) => sum + y.han, 0);
 
-      const { fu: decompFu, breakdown: decompBreakdown } = calculateFu(hand, decomp, gameContext);
+      const { fu: decompFu, fuSubtotalBefore,breakdown: decompBreakdown } = calculateFu(hand, decomp, gameContext);
       let effectiveFu = decompFu;
       let effectiveBreakdown = decompBreakdown;
 
@@ -1111,6 +1116,7 @@ export function calculateScore(hand: Hand, gameContext: GameContext): ScoringRes
 
       candidates.push({
         fu: effectiveFu,
+        fuSubtotalBefore: fuSubtotalBefore,
         fuBreakdown: effectiveBreakdown,
         decomp,
         yaku: rawYaku,
@@ -1127,7 +1133,9 @@ export function calculateScore(hand: Hand, gameContext: GameContext): ScoringRes
   let bestCandidate = candidates[0];
   for (const c of candidates) {
     if (c.formalHan > bestCandidate.formalHan ||
-        (c.formalHan === bestCandidate.formalHan && c.fu > bestCandidate.fu)) {
+        (c.formalHan === bestCandidate.formalHan && c.fu > bestCandidate.fu) ||
+        (c.formalHan === bestCandidate.formalHan && c.fu === bestCandidate.fu && c.fuSubtotalBefore > bestCandidate.fuSubtotalBefore)
+      ) {
       bestCandidate = c;
     }
   }
