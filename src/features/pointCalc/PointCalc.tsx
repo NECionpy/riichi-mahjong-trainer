@@ -227,7 +227,6 @@ function generateRandomGame(): {
 
   // 兜底：生成失败时使用简单有效手牌
   if (mentsuList.length < 4 || pairSuit === null) {
-    console.warn("随机生成手牌失败，使用兜底手牌");
     return generateFallbackHand();
   }
 

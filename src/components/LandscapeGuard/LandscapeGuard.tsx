@@ -23,8 +23,6 @@ const LandscapeGuard: React.FC<LandscapeGuardProps> = ({ children }) => {
     setIsLandscape(window.matchMedia("(orientation: landscape)").matches);
 
     setIsFullscreen(!!document.fullscreenElement);
-
-    console.log('11', window.matchMedia("(orientation: landscape)"))
   };
 
   useEffect(() => {

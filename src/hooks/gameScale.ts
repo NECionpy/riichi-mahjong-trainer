@@ -25,8 +25,6 @@ export function useGameScale() {
         height / DESIGN_HEIGHT
       );
 
-      console.log(scale)
-
       setLayout({
         scale,
         originWidth: DESIGN_WIDTH,
