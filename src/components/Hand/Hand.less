@@ -1,0 +1,63 @@
+.hand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 10px;
+  flex-wrap: wrap;
+  min-height: 88px;
+  background: #00000022;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+  background-image: url(./images/background.svg);
+  .hand-tiles {
+    display: flex;
+    gap: 2px;
+    flex-wrap: wrap;
+  }
+
+  .hand-separator {
+    width: 3px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    margin: 0 16px;
+
+    &.medium {
+      margin: 0 12px;
+    }
+
+    &.small {
+      margin: 0 8px;
+    }
+
+    &.tiny {
+      margin: 0 6px;
+    }
+  }
+
+  .hand-winning-tile {
+    position: relative;
+    display: flex;
+    gap: 2px;
+  }
+
+  .hand-winning-tile .winning-type-label {
+    position: absolute;
+    top: -40px;
+    width: 100%;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 2px 0px;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+
+  .hand-winning-tile .winning-type-label.tsumo {
+    color: #0f8531;
+    font-weight: bold;
+  }
+  .hand-winning-tile .winning-type-label.ron {
+    color: #c75e01;
+    font-weight: bold;
+  }
+}

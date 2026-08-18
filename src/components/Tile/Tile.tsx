@@ -5,11 +5,11 @@ import {
   TileImageDir,
   getTileBackImagePath,
 } from "../../utils/tileImage";
-import "./Tile.css";
+import "./Tile.less";
 
 interface TileProps {
   tile: TileType;
-  size?: "small" | "medium" | "large";
+  size?: "tiny" | "small" | "medium" | "large";
   highlighted?: boolean;
   faceDown?: boolean;
   dir?: TileImageDir;
@@ -47,7 +47,7 @@ const Tile: React.FC<TileProps> = ({
 
   return (
     <div
-      className={`tile tile-${size} ${highlighted ? "tile-highlighted" : ""} ${onClick ? "tile-clickable" : ""}`}
+      className={`tile tile-${dir} tile-${size} ${highlighted ? "tile-highlighted" : ""} ${onClick ? "tile-clickable" : ""}`}
       onClick={onClick}
     >
       <img

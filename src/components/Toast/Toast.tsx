@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import './Toast.css';
+import './Toast.less';
 
 export type ToastType = 'success' | 'error' | 'info';
 

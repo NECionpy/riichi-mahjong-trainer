@@ -1,72 +1,43 @@
-import { HashRouter, Routes, Route, NavLink } from "react-router-dom";
-import {MarkGithubIcon} from '@primer/octicons-react'
+import { HashRouter, Routes, Route } from "react-router-dom";
 import { ToastProvider } from "./components/Toast/ToastContext";
+import Home from "./features/home/Home";
 import PointCalc from "./features/pointCalc/PointCalc";
 import Shanten from "./features/shanten/Shanten";
 import Chinitsu from "./features/chinitsu/Chinitsu";
-import "./App.css";
+import "./App.less";
+import LandscapeGuard from "./components/LandscapeGuard/LandscapeGuard";
+import { getAllTiles, preloadImages } from "./utils/utils";
+import Machipai from "./features/machipai/Machipai";
+import { useGameScale } from "./hooks/gameScale";
+
+const imageUrls = getAllTiles();
+preloadImages(imageUrls);
 
 function App() {
+  const scale = useGameScale();
   return (
-    <ToastProvider>
-      <HashRouter>
-        <div className="app">
-          <header className="app-header">
-            <div className="header-inner">
-              <div className="app-brand">
-                <span className="app-logo">🀄</span>
-                <h1>立直麻将训练器</h1>
-                <a href="https://github.com/NECionpy/riichi-mahjong-trainer" target="_blank" rel="noopener noreferrer">
-                  <MarkGithubIcon />
-                </a>
-              </div>
-              <nav className="app-nav">
-                <NavLink
-                  to="/"
-                  end
-                  className={({ isActive }) =>
-                    `nav-link${isActive ? " active" : ""}`
-                  }
-                >
-                  <span className="nav-icon">🎯</span>
-                  <span className="nav-text">报点模拟器</span>
-                </NavLink>
-                <NavLink
-                  to="/shanten"
-                  className={({ isActive }) =>
-                    `nav-link${isActive ? " active" : ""}`
-                  }
-                >
-                  <span className="nav-icon">🔢</span>
-                  <span className="nav-text">向听数模拟器</span>
-                </NavLink>
-                <NavLink
-                  to="/chinitsu"
-                  className={({ isActive }) =>
-                    `nav-link${isActive ? " active" : ""}`
-                  }
-                >
-                  <span className="nav-icon">🎴</span>
-                  <span className="nav-text">清一色听牌模拟器</span>
-                </NavLink>
-              </nav>
-            </div>
-          </header>
-
-          <main className="app-main">
+    <LandscapeGuard>
+      <div
+        className="app"
+        style={{
+          width: scale.originWidth,
+          height: scale.originHeight,
+          transform: `translate(-50%, -50%) scale(${scale.scale})`,
+        }}
+      >
+        <ToastProvider>
+          <HashRouter>
             <Routes>
-              <Route path="/" element={<PointCalc />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/pointCalc" element={<PointCalc />} />
               <Route path="/shanten" element={<Shanten />} />
               <Route path="/chinitsu" element={<Chinitsu />} />
+              <Route path="/machipai" element={<Machipai />} />
             </Routes>
-          </main>
-
-          <footer className="app-footer">
-            <p>立直麻将训练器 — 练习报点、向听数判断与清一色听牌</p>
-          </footer>
-        </div>
-      </HashRouter>
-    </ToastProvider>
+          </HashRouter>
+        </ToastProvider>
+      </div>
+    </LandscapeGuard>
   );
 }
 

@@ -1,0 +1,368 @@
+.app-main.point-calc {
+  .section {
+    padding: 0;
+    border-radius: 16px;
+    border: 0;
+  }
+
+  /* ============================================================
+   结果展示
+   ============================================================ */
+
+  .result {
+    padding: 20px;
+    border-radius: var(--radius-md, 10px);
+    border: 1px solid #d4af37;
+
+    .result-payment {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .result-summary {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      gap: 24px;
+      flex-wrap: wrap;
+      & > div {
+        display: flex;
+        gap: 34px;
+      }
+    }
+
+    .result-item {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .result-item .label {
+      font-weight: 400;
+    }
+
+    .result-item .value {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #d4af37;
+    }
+
+    .payment-amount {
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--color-accent, #e94560);
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+
+    .payment-honba {
+      margin: 4px 0 0 0;
+    }
+
+    .result-keiten {
+      color: var(--color-accent, #e94560);
+      border: 1px solid #fcd34d;
+      border-radius: var(--radius-sm, 6px);
+      padding: 10px 14px;
+      margin: 12px 0;
+      font-weight: 500;
+      font-size: 30px;
+    }
+
+    .result-details {
+      display: flex;
+      margin-bottom: 10px;
+      justify-content: space-between;
+      /* 符数计算过程 */
+      .result-fu-breakdown {
+        width: 49%;
+        padding: 14px 18px;
+        border-radius: var(--radius-md, 10px);
+        border: 1px solid #fcd34d;
+        h4 {
+          margin: 0 0 10px 0;
+          color: #d4af37;
+        }
+
+        .fu-breakdown-special {
+          font-style: italic;
+          padding: 4px 0;
+        }
+
+        .fu-breakdown-table {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .fu-breakdown-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 3px 10px;
+          border-radius: 4px;
+        }
+
+        .fu-breakdown-row + .fu-breakdown-row {
+          margin-top: 2px;
+        }
+
+        .fu-breakdown-label {
+        }
+
+        .fu-breakdown-value {
+          font-weight: 500;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .fu-type-base {
+        }
+
+        .fu-type-add {
+        }
+
+        .fu-type-add .fu-breakdown-value {
+          color: #28a745;
+        }
+
+        .fu-type-subtotal {
+          border-top: 1px dashed #d4af37;
+          margin-top: 4px;
+          padding-top: 6px;
+          font-weight: 600;
+        }
+
+        .fu-type-rounding {
+        }
+
+        .fu-type-rounding .fu-breakdown-value {
+          color: #0d6efd;
+        }
+
+        .fu-type-floor {
+        }
+
+        .fu-type-floor .fu-breakdown-value {
+          color: #dc3545;
+        }
+      }
+
+      .result-yaku {
+        width: 49%;
+        padding: 14px 18px;
+        border-radius: var(--radius-md, 10px);
+        border: 1px solid #d4af37;
+        h4 {
+          margin-bottom: 8px;
+          color: #d4af37;
+        }
+        ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          li {
+            padding: 3px 8px;
+            border-radius: 4px;
+            transition: background 0.15s;
+          }
+
+          li:hover {
+            background: rgba(0, 0, 0, 0.03);
+          }
+        }
+
+        .points-name {
+          margin-top: 20px;
+          font-size: 48px;
+          color: rgb(255, 61, 61);
+          text-shadow: 1px 1px 4px #fff25f;
+          font-style: oblique;
+        }
+      }
+    }
+  }
+
+  .answer-rules-info {
+    margin: 22px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+}
+
+/* ============================================================
+   绿色桌面展示区
+   ============================================================ */
+
+.table-area {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 96%;
+  height: 100%;
+  background: linear-gradient(145deg, #2d6a4f 0%, #1b4332 100%);
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 20px;
+  box-shadow:
+    inset 0 2px 12px rgba(0, 0, 0, 0.3),
+    var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  .table-top {
+  }
+
+  .table-bottom {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* 场况展示栏 */
+  .game-info-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 16px 30px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md, 10px);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    justify-content: space-between;
+    .tags-container {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      .game-info-tag {
+        display: inline-block;
+        padding: 8px 24px;
+        background: rgba(255, 255, 255, 0.92);
+        color: #1b4332;
+        font-weight: 600;
+        border-radius: 45px;
+        white-space: nowrap;
+        &.tsumo {
+          background: rgba(12, 114, 208, 0.9);
+          color: #fff;
+        }
+
+        &.ron {
+          background: rgba(199, 94, 1, 0.9);
+          color: #fff;
+        }
+      }
+    }
+  }
+
+  /* 宝牌展示区 */
+  .dora-display-area {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    margin-bottom: 18px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: var(--radius-md, 10px);
+    .dora-indicator-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dora-indicator-label {
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      min-width: 60px;
+      text-align: right;
+    }
+
+    .dora-indicator-tiles {
+      display: flex;
+      gap: 4px;
+    }
+
+    .dora-indicator-tiles .dora-slot {
+      width: 44px;
+      height: 56px;
+      border-radius: var(--radius-sm, 6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dora-indicator-tiles .dora-slot-empty {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px dashed rgba(255, 255, 255, 0.25);
+    }
+
+    .dora-indicator-tiles .dora-slot-active {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .dora-indicator-tiles .dora-slot .tile-small {
+      transform-origin: center;
+    }
+  }
+
+  /* 手牌展示区 */
+  .hand-area {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 10px;
+    min-height: 88px;
+    background: #00000022;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+    background-image: url(./images/background.svg);
+    .hand {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+      box-shadow: none;
+      min-height: auto;
+    }
+  }
+}
+
+/* ============================================================
+   报点输入区
+   ============================================================ */
+
+.answer-item {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  padding: 0 10px;
+  gap: 28px;
+
+  label {
+    font-weight: 500;
+    color: #fff;
+    font-size: 1.3rem;
+  }
+
+  input {
+    width: 420px;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--color-primary, #0f3460);
+    box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
+  }
+
+  .btn-transparent {
+    svg {
+      color: #ffd300;
+      background: linear-gradient(145deg, #184680 0%, #081c38 100%);
+      border-radius: 42px;
+    }
+  }
+}

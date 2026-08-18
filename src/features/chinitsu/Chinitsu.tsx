@@ -1,18 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { useToast } from '../../components/Toast/ToastContext';
-import Hand from '../../components/Hand/Hand';
-import Tile from '../../components/Tile/Tile';
-import { parseTileString, Tile as TileType, TileSuit, TileValue, sortTiles, createTile, tilesToString } from '../../core/tile';
-import { detectWait, WaitResult } from '../../core/wait';
-import './Chinitsu.css';
+import React, { useEffect, useRef, useState } from "react";
+import { useToast } from "../../components/Toast/ToastContext";
+import Hand from "../../components/Hand/Hand";
+import Tile from "../../components/Tile/Tile";
+import {
+  Tile as TileType,
+  TileSuit,
+  TileValue,
+  sortTiles,
+  createTile,
+} from "../../core/tile";
+import { detectWait, WaitResult } from "../../core/wait";
+import "./Chinitsu.less";
+import Header from "../../components/Header/Header";
+import CustomModal from "../../components/Modal/CustomModal";
+import { randomInt } from "../../utils/utils";
 
 /**
  * 随机生成一副已听牌的清一色手牌（13张）
  */
-function generateRandomChinitsuHand(): TileType[] {
-  const suits: TileSuit[] = ['man', 'pin', 'sou'];
-  const suit = suits[Math.floor(Math.random() * 3)];
-
+function generateRandomChinitsuHand(suitTypeIndex: number): TileType[] {
+  const suits: TileSuit[] = ["man", "pin", "sou"];
+  const suit = suits[suitTypeIndex];
   let tiles: number[] = [];
   let valid = false;
   let attempts = 0;
@@ -45,12 +53,12 @@ function generateRandomChinitsuHand(): TileType[] {
     counts[pairNum] += 2;
 
     // 检查每种牌不超过4张
-    valid = counts.every(c => c <= 4);
+    valid = counts.every((c) => c <= 4);
   }
 
   // 转换为 Tile 对象
   let id = 0;
-  const tileObjects = tiles.map(n => createTile(suit, n as TileValue, id++));
+  const tileObjects = tiles.map((n) => createTile(suit, n as TileValue, id++));
 
   // 随机移除一张牌，使其变为听牌状态
   const removeIdx = Math.floor(Math.random() * tileObjects.length);
@@ -62,77 +70,29 @@ function generateRandomChinitsuHand(): TileType[] {
 const tileKey = (t: TileType) => `${t.suit}-${t.value}`;
 
 const Chinitsu: React.FC = () => {
-  const [handInput, setHandInput] = useState('');
+  // const [handInput, setHandInput] = useState("");
   const [handTiles, setHandTiles] = useState<TileType[]>([]);
   // 用户选择的"听牌"集合（以 suit-value 为 key）
   const [userWaitTiles, setUserWaitTiles] = useState<Set<string>>(new Set());
   // 计算结果
   const [waitResult, setWaitResult] = useState<WaitResult | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [error, setError] = useState('');
+  const suitTypeIndex = useRef(randomInt(3));
   const toast = useToast();
 
   // 根据手牌花色生成 1-9 的候选牌
-  const handSuit: TileSuit | null = handTiles.length > 0 ? handTiles[0].suit : null;
-  const candidateTiles: TileType[] = handSuit && handSuit !== 'honor'
-    ? Array.from({ length: 9 }, (_, i) => createTile(handSuit, (i + 1) as TileValue, 0))
-    : [];
-
-  const handleHandInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setHandInput(value);
-
-    // 手牌变化时清空用户选择和结果
-    setUserWaitTiles(new Set());
-    setWaitResult(null);
-    setShowResult(false);
-
-    try {
-      if (value) {
-        const tiles = parseTileString(value);
-        setHandTiles(sortTiles(tiles));
-        setError('');
-      } else {
-        setHandTiles([]);
-      }
-    } catch (err) {
-      setHandTiles([]);
-      setError('牌格式不正确，请使用如 "1112345678999m" 的格式');
-    }
-  };
-
-  const handleCalculate = () => {
-    if (handTiles.length === 0) {
-      setError('请输入手牌');
-      return;
-    }
-
-    // 检查是否为清一色
-    const suits = new Set(handTiles.map(t => t.suit));
-    if (suits.size !== 1 || handTiles[0].suit === 'honor') {
-      setError('手牌必须是清一色（只有一种花色）');
-      return;
-    }
-
-    // 检查牌数
-    if (handTiles.length !== 13) {
-      setError('手牌必须是13张');
-      return;
-    }
-
-    try {
-      const result = detectWait(handTiles);
-      setWaitResult(result);
-      setShowResult(true);
-      setError('');
-    } catch (err) {
-      setError('计算失败：' + (err as Error).message);
-    }
-  };
+  const handSuit: TileSuit | null =
+    handTiles.length > 0 ? handTiles[0].suit : null;
+  const candidateTiles: TileType[] =
+    handSuit && handSuit !== "honor"
+      ? Array.from({ length: 9 }, (_, i) =>
+          createTile(handSuit, (i + 1) as TileValue, 0),
+        )
+      : [];
 
   const handleToggleWaitTile = (tile: TileType) => {
     if (showResult) return; // 已显示结果后禁止修改
-    setUserWaitTiles(prev => {
+    setUserWaitTiles((prev) => {
       const next = new Set(prev);
       const key = tileKey(tile);
       if (next.has(key)) {
@@ -146,14 +106,14 @@ const Chinitsu: React.FC = () => {
 
   const handleCheckAnswer = () => {
     if (handTiles.length !== 13) {
-      toast.showToast('请先输入13张手牌', 'error');
+      toast.showToast("请先输入13张手牌", "error");
       return;
     }
 
     // 检查是否为清一色
-    const suits = new Set(handTiles.map(t => t.suit));
-    if (suits.size !== 1 || handTiles[0].suit === 'honor') {
-      toast.showToast('手牌必须是清一色', 'error');
+    const suits = new Set(handTiles.map((t) => t.suit));
+    if (suits.size !== 1 || handTiles[0].suit === "honor") {
+      toast.showToast("手牌必须是清一色", "error");
       return;
     }
 
@@ -163,23 +123,25 @@ const Chinitsu: React.FC = () => {
       result = detectWait(handTiles);
       setWaitResult(result);
       setShowResult(true);
-      setError('');
     } catch (err) {
-      toast.showToast('计算失败：' + (err as Error).message, 'error');
+      toast.showToast("计算失败：" + (err as Error).message, "error");
       return;
     }
 
     if (!result.isTenpai) {
-      toast.showToast('手牌未听牌', 'error');
+      toast.showToast("手牌未听牌", "error");
       return;
     }
 
     // 对比用户选择与计算结果
-    const correctKeys = new Set(result.waitingTiles.map(t => tileKey(t)));
+    const correctKeys = new Set(result.waitingTiles.map((t) => tileKey(t)));
     const userKeys = userWaitTiles;
 
     if (userKeys.size !== correctKeys.size) {
-      toast.showToast(`答案错误\n正确答案：${result.waitingTiles.length} 张听牌`, 'error');
+      toast.showToast(
+        `答案错误\n正确答案：${result.waitingTiles.length} 种听牌`,
+        "error",
+      );
       return;
     }
 
@@ -192,28 +154,42 @@ const Chinitsu: React.FC = () => {
     }
 
     if (allMatch) {
-      toast.showToast('答案正确！', 'success');
+      toast.showToast("答案正确！", "success");
     } else {
-      toast.showToast(`答案错误\n正确答案：${result.waitingTiles.length} 张听牌`, 'error');
+      toast.showToast(
+        `答案错误\n正确答案：${result.waitingTiles.length} 种听牌`,
+        "error",
+      );
     }
   };
 
   const handleReset = () => {
-    setUserWaitTiles(new Set());   
+    setUserWaitTiles(new Set());
     setShowResult(false);
-    setError('');
   };
 
+  const closeModal =
+    (next: boolean = false) =>
+    () => {
+      setShowResult(false);
+      setWaitResult(null);
+      if (next) {
+        setUserWaitTiles(new Set());
+        handleGenerateHand();
+      }
+    };
+
   const handleGenerateHand = () => {
-    const tiles = generateRandomChinitsuHand();
+     suitTypeIndex.current =
+      suitTypeIndex.current >= 2 ? 0 : suitTypeIndex.current! + 1;
+    const tiles = generateRandomChinitsuHand(suitTypeIndex.current);
     const sorted = sortTiles(tiles);
-    const handStr = tilesToString(sorted);
-    setHandInput(handStr);
+    // const handStr = tilesToString(sorted);
+    // setHandInput(handStr);
     setHandTiles(sorted);
     setUserWaitTiles(new Set());
     setWaitResult(null);
     setShowResult(false);
-    setError('');
   };
 
   useEffect(() => {
@@ -221,108 +197,97 @@ const Chinitsu: React.FC = () => {
   }, []);
 
   return (
-    <div className="chinitsu">
-      <h2>清一色听牌模拟器</h2>
-
-      <div className="section">
-        <h3>手牌输入</h3>
-        <div className="hand-input-row">
-          <input
-            type="text"
-            value={handInput}
-            onChange={handleHandInputChange}
-            placeholder="输入清一色手牌，如: 1112345678999m (13张牌)"
-            className="hand-input"
+    <div className="app-container">
+      <Header
+        title="清一色听牌训练"
+        backable
+        actions={
+          <img
+            src="./images/random.png"
+            className="random"
+            alt="随机手牌"
+            title="随机手牌"
+            onClick={handleGenerateHand}
           />
-          <button onClick={handleGenerateHand} className="action-btn generate-btn">
-            🎲 生成手牌
-          </button>
-        </div>
-        {handTiles.length > 0 && (
-          <Hand tiles={handTiles} size="medium" />
-        )}
-        <div className="tile-count">
-          当前牌数: {handTiles.length} 张
-        </div>
-      </div>
-
-      {error && <div className="error-message">{error}</div>}
-
-      <div className="section">
-        <h3>听牌推断</h3>
-        <div className="waiting-pick-hint">
-          请从下方候选牌中点击选择听牌（可多选）：
-        </div>
-        <div className="candidate-tiles">
-          {candidateTiles.map((tile) => {
-            const isSelected = userWaitTiles.has(tileKey(tile));
-            return (
-              <Tile
-                key={tileKey(tile)}
-                tile={tile}
-                size="medium"
-                highlighted={isSelected}
-                onClick={() => handleToggleWaitTile(tile)}
-              />
-            );
-          })}
-        </div>
-        <div className="selected-count">
-          已选择：{userWaitTiles.size} 张
-        </div>
-        <div className="action-buttons">
-          <button onClick={handleCheckAnswer} className="action-btn">
-            检查答案
-          </button>
-          <button onClick={handleReset} className="action-btn secondary">
-            重置
-          </button>
-        </div>
-      </div>
-
-      <div className="section">
-        <h3>计算结果</h3>
-        <button onClick={handleCalculate} className="action-btn">
-          计算听牌
-        </button>
-
-        {showResult && waitResult && (
-          <div className="result">
-            {!waitResult.isTenpai ? (
-              <div className="result-item">
-                <span className="label">手牌未听牌</span>
-              </div>
-            ) : (
-              <>
-                <div className="result-summary">
-                  <div className="result-item">
-                    <span className="label">听牌数:</span>
-                    <span className="value">{waitResult.waitingTiles.length} 张</span>
-                  </div>
-                </div>
-                <div className="waiting-tiles">
-                  <h4>听的牌:</h4>
-                  <div className="tiles-display">
-                    {waitResult.waitingTiles.map((tile, idx) => (
-                      <Tile key={idx} tile={tile} size="medium" />
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
+        }
+      />
+      <div className="app-main chinitsu">
+        <section className="section">
+          <div className="section-top">
+            <div className="waiting-pick-hint">
+              <span> 请从下方候选牌中点击选择听牌（可多选）：</span>
+              <strong> 已选择 {userWaitTiles.size} 种</strong>
+            </div>
+            <div className="candidate-tiles">
+              {candidateTiles.map((tile) => {
+                const isSelected = userWaitTiles.has(tileKey(tile));
+                return (
+                  <Tile
+                    key={tileKey(tile)}
+                    tile={tile}
+                    size="medium"
+                    highlighted={isSelected}
+                    onClick={() => handleToggleWaitTile(tile)}
+                  />
+                );
+              })}
+            </div>
+            <div className="actions">
+              <button
+                className="button submit"
+                onClick={handleCheckAnswer}
+              ></button>
+              <button className="button reset" onClick={handleReset}></button>
+            </div>
           </div>
-        )}
-      </div>
 
-      <div className="section info-section">
-        <h3>说明</h3>
-        <ul>
-          <li>清一色：手牌只有一种花色（万、筒或索）</li>
-          <li>输入必须是13张牌</li>
-          <li>手牌必须处于听牌状态</li>
-          <li>从下方候选牌中点击选择你认为的听牌，可多选</li>
-          <li>按"检查答案"会显示计算结果并对比</li>
-        </ul>
+          {handTiles.length > 0 && <Hand tiles={handTiles} size="medium" />}
+        </section>
+
+        <CustomModal
+          title="计算结果"
+          isOpen={!!waitResult}
+          onClose={closeModal()}
+        >
+          {waitResult ? (
+            <div className="result">
+              {!waitResult.isTenpai ? (
+                <div className="result-item">
+                  <span className="label">手牌未听牌</span>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    {handTiles.length > 0 && (
+                      <Hand tiles={handTiles} size="medium" />
+                    )}
+                  </div>
+                  <div className="result-summary">
+                    <div className="result-item">
+                      <span className="label">听牌数:</span>
+                      <span className="value">
+                        {waitResult.waitingTiles.length} 种
+                      </span>
+                    </div>
+                  </div>
+                  <div className="waiting-tiles">
+                    <div className="tiles-display">
+                      {waitResult.waitingTiles.map((tile, idx) => (
+                        <Tile key={idx} tile={tile} size="medium" />
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <button
+                      className="button next"
+                      onClick={closeModal(true)}
+                    ></button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : null}
+        </CustomModal>
       </div>
     </div>
   );

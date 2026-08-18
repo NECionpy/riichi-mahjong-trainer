@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useToast } from "../../components/Toast/ToastContext";
-import Hand from "../../components/Hand/Hand";
-import MeldsDisplay from "../../components/Hand/MeldsDisplay";
 import Tile from "../../components/Tile/Tile";
 import {
-  parseTileString,
   parseHandString,
   Tile as TileType,
   sortTiles,
@@ -16,9 +13,19 @@ import {
   tileKeyToName,
 } from "../../core/tile";
 import { parseHand, Hand as HandType } from "../../core/hand";
-import { calculateScore, GameContext, ScoringResult } from "../../core/scoring";
+import {
+  calculateScore,
+  GameContext,
+  getBasePointsName,
+  ScoringResult,
+} from "../../core/scoring";
 import ReferenceModal from "./ReferenceModal";
-import "./PointCalc.css";
+import "./PointCalc.less";
+import Header from "../../components/Header/Header";
+import CustomModal from "../../components/Modal/CustomModal";
+import { shuffleFisherYates } from "../../utils/utils";
+import RichHand from "../../components/RichHand/RichHand";
+import KeypadInput from "../../components/Input/KeypadInput";
 
 // ============================================================
 // 随机生成手牌和场况
@@ -94,8 +101,18 @@ function generateRandomGame(): {
     else if (r < 0.3 && !isMenzen) isChankan = true; // 立直时不能抢杠（抢杠需要加杠=明杠）
   }
 
-    // 一发的条件：立直或双立直，且不是岭上开花/抢杠
-   let isIppatsu = (isRiichi || isDoubleRiichi) && !isRinshan && !isChankan && Math.random() < 0.3;
+  // 一发的条件：立直或双立直，且不是岭上开花/抢杠
+  let isIppatsu =
+    (isRiichi || isDoubleRiichi) &&
+    !isRinshan &&
+    !isChankan &&
+    Math.random() < 0.3;
+
+  // 双立直不能海底或河底和牌
+  if (isDoubleRiichi) {
+    isHaitei = false;
+    isHoutei = false;
+  }
 
   // ---- Step 2: 生成4面子+1雀头 ----
   interface GenMentsu {
@@ -113,7 +130,7 @@ function generateRandomGame(): {
 
   // 如果需要岭上开花，至少需要一个杠子；抢杠需要加杠
   const needsKan = isRinshan;
-  const needsKakan = isChankan;
+  const needsKakan = false;
 
   let attempts = 0;
   while (mentsuList.length < 4 && attempts < 500) {
@@ -276,7 +293,13 @@ function generateRandomGame(): {
     grouped[s].sort((a, b) => a - b);
   }
 
-  const suitOrder: TileSuit[] = ["man", "pin", "sou", "honor"];
+  const suitOrder: TileSuit[] = shuffleFisherYates([
+    "man",
+    "pin",
+    "sou",
+    "honor",
+  ]);
+
   let handStr = "";
   for (const s of suitOrder) {
     const nums = grouped[s];
@@ -408,6 +431,20 @@ function generateFallbackHand(): {
   };
 }
 
+function getWindName(
+  wind: "east" | "south" | "west" | "north",
+): "东" | "南" | "西" | "北" {
+  switch (wind) {
+    case "east":
+      return "东";
+    case "south":
+      return "南";
+    case "west":
+      return "西";
+    default:
+      return "北";
+  }
+}
 const PointCalc: React.FC = () => {
   const [handInput, setHandInput] = useState("");
   const [handTiles, setHandTiles] = useState<TileType[]>([]);
@@ -431,89 +468,12 @@ const PointCalc: React.FC = () => {
     honba: 0,
   });
 
-  const [doraInput, setDoraInput] = useState("");
-  const [uraDoraInput, setUraDoraInput] = useState("");
-
   const [paymentAnswer, setPaymentAnswer] = useState("");
 
   const [result, setResult] = useState<ScoringResult | null>(null);
-  const [error, setError] = useState("");
+  const [showAnswerRulesModal, setShowAnswerRulesModal] = useState(false);
   const toast = useToast();
   const [showReference, setShowReference] = useState(false);
-  const [showCustomModal, setShowCustomModal] = useState(false);
-
-  const handleHandInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setHandInput(value);
-
-    try {
-      if (value) {
-        const parsed = parseHandString(value);
-        setHandTiles(sortTiles(parsed.handTiles));
-        setWinningTile(parsed.winTile);
-        setMelds(parsed.melds);
-        setError("");
-      } else {
-        setHandTiles([]);
-        setWinningTile(null);
-        setMelds([]);
-      }
-    } catch (err) {
-      setError(
-        '牌格式不正确，请使用如 "123m456p789s22z3m" 或 "123m c456m p111m 789s11z 4p" 的格式',
-      );
-    }
-  };
-
-  const handleAddDora = () => {
-    try {
-      if (!doraInput.trim()) return;
-      const tiles = parseTileString(doraInput);
-      if (tiles.length === 0) return;
-      const newIndicators = [...gameContext.doraIndicators, tiles[0]];
-      if (newIndicators.length > 5) {
-        setError("宝牌指示牌最多5张");
-        return;
-      }
-      setGameContext({ ...gameContext, doraIndicators: newIndicators });
-      setDoraInput("");
-      setError("");
-    } catch (err) {
-      setError("宝牌指示牌格式不正确");
-    }
-  };
-
-  const handleRemoveDora = (index: number) => {
-    const newIndicators = gameContext.doraIndicators.filter(
-      (_, i) => i !== index,
-    );
-    setGameContext({ ...gameContext, doraIndicators: newIndicators });
-  };
-
-  const handleAddUraDora = () => {
-    try {
-      if (!uraDoraInput.trim()) return;
-      const tiles = parseTileString(uraDoraInput);
-      if (tiles.length === 0) return;
-      const newIndicators = [...gameContext.uraDoraIndicators, tiles[0]];
-      if (newIndicators.length > 5) {
-        setError("里宝指示牌最多5张");
-        return;
-      }
-      setGameContext({ ...gameContext, uraDoraIndicators: newIndicators });
-      setUraDoraInput("");
-      setError("");
-    } catch (err) {
-      setError("里宝指示牌格式不正确");
-    }
-  };
-
-  const handleRemoveUraDora = (index: number) => {
-    const newIndicators = gameContext.uraDoraIndicators.filter(
-      (_, i) => i !== index,
-    );
-    setGameContext({ ...gameContext, uraDoraIndicators: newIndicators });
-  };
 
   // 校验手牌是否合法
   const checkHandValidity = (
@@ -560,39 +520,21 @@ const PointCalc: React.FC = () => {
       if (count > 4) {
         const tileName = tileKeyToName(key);
         setResult(null);
-        setError(`牌 ${tileName} 出现了 ${count} 张，超过了4张`);
+        toast.showToast(
+          `牌 ${tileName} 出现了 ${count} 张，超过了4张`,
+          "error",
+        );
         return false;
       }
     }
     return true;
   };
 
-  // 计算报点
-  const handleCalculate = () => {
-    if (handTiles.length === 0 || !winningTile) {
-      setError("请输入完整的手牌");
-      return;
-    }
-
-    try {
-      const hand = parseHand(handInput, isTsumo);
-      if (!checkHandValidity(hand, gameContext)) {
-        return;
-      }
-      const score = calculateScore(hand, gameContext);
-
-      setResult(score);
-      setError("");
-    } catch (err) {
-      setError("计算失败：" + (err as Error).message);
-    }
-  };
-
   // 检查答案
   const handleCheckAnswer = () => {
     // 先执行计算得分
     if (handTiles.length === 0 || !winningTile) {
-      setError("请输入完整的手牌");
+      toast.showToast("请输入完整的手牌", "error");
       return;
     }
 
@@ -603,7 +545,6 @@ const PointCalc: React.FC = () => {
       }
       const score = calculateScore(hand, gameContext);
       setResult(score);
-      setError("");
 
       // 构建期望的支付报点字符串
       let expectedPayment: string;
@@ -629,25 +570,47 @@ const PointCalc: React.FC = () => {
         toast.showToast("答案错误\n正确答案：" + expectedPayment, "error");
       }
     } catch (err) {
-      setError("计算失败：" + (err as Error).message);
+      toast.showToast("计算失败：" + (err as Error).message, "error");
     }
   };
 
+  const closeResult =
+    (next: boolean = false) =>
+    () => {
+      setResult(null);
+      if (next) {
+        handleGenerateGame();
+      }
+    };
+
+  // 尽可能获取有效手牌
+  const getEffectiveGame = (): {
+    handInput: string;
+    gameContext: GameContext;
+    isTsumo: boolean;
+  } => {
+    let generated = generateFallbackHand();
+    for (let index = 0; index < 5; index++) {
+      generated = generateRandomGame();
+      const hand = parseHand(generated.handInput, generated.isTsumo);
+      const score = calculateScore(hand, generated.gameContext);
+      if (!score.isKeiten) return generated;
+    }
+    return generated;
+  };
+
   const handleGenerateGame = () => {
-    const generated = generateRandomGame();
+    const generated = getEffectiveGame();
+
     setHandInput(generated.handInput);
-    // 解析生成的手牌字符串
     const parsed = parseHandString(generated.handInput);
     setHandTiles(sortTiles(parsed.handTiles));
     setWinningTile(parsed.winTile);
     setMelds(parsed.melds);
     setIsTsumo(generated.isTsumo);
     setGameContext(generated.gameContext);
-    setDoraInput("");
-    setUraDoraInput("");
     setPaymentAnswer("");
     setResult(null);
-    setError("");
   };
 
   const handleReset = () => {
@@ -659,687 +622,330 @@ const PointCalc: React.FC = () => {
   }, []);
 
   return (
-    <div className="point-calc">
-      <div className="point-calc-header">
-        <h2>报点模拟器</h2>
-        <div className="header-buttons">
-          <button className="ref-btn" onClick={() => setShowReference(true)}>
-            📖 报点参考
-          </button>
-          <button
-            onClick={handleGenerateGame}
-            className="action-btn generate-btn"
-          >
-            🎲 生成手牌
-          </button>
-          <button
-            className="custom-btn"
-            onClick={() => setShowCustomModal(true)}
-          >
-            ⚙️ 自定义
-          </button>
-        </div>
-      </div>
-
-      {/* 绿色桌面展示区 */}
-      {(handTiles.length > 0 || melds.length > 0) && (
-        <div className="table-area">
-          {/* 场况展示栏 */}
-          <div className="game-info-bar">
-            <div className="tags-container">
-              {(() => {
-                const roundName =
-                  gameContext.round === "east"
-                    ? "东"
-                    : gameContext.round === "south"
-                      ? "南"
-                      : "西";
-                const windName =
-                  gameContext.playerWind === "east"
-                    ? "东"
-                    : gameContext.playerWind === "south"
-                      ? "南"
-                      : gameContext.playerWind === "west"
-                        ? "西"
-                        : "北";
-                const tags: string[] = [];
-                tags.push(`${roundName} ${gameContext.roundNumber} 局`);
-                tags.push(`${gameContext.honba} 本场`);
-                tags.push(`自风：${windName}`);
-                return tags.map((tag, i) => (
-                  <span key={i} className="game-info-tag">
-                    {tag}
+    <div className="app-container">
+      <Header
+        title="报点训练"
+        backable
+        actions={
+          <>
+            <img
+              src="./images/info.png"
+              className="info"
+              alt="报点参考"
+              title="报点参考"
+              onClick={() => setShowReference(true)}
+            />
+            <img
+              src="./images/random.png"
+              className="random"
+              alt="随机手牌"
+              title="随机手牌"
+              onClick={handleGenerateGame}
+            />
+          </>
+        }
+      />
+      <div className="app-main point-calc">
+        {(handTiles.length > 0 || melds.length > 0) && (
+          <div className="table-area">
+            <div className="table-top">
+              {/* 场况展示栏 */}
+              <div className="game-info-bar">
+                <div className="tags-container">
+                  {(() => {
+                    const roundName = getWindName(gameContext.round);
+                    const windName = getWindName(gameContext.playerWind);
+                    const tags: string[] = [];
+                    tags.push(`${roundName}场 ${windName}家`);
+                    tags.push(`${gameContext.honba} 本场`);
+                    return tags.map((tag, i) => (
+                      <span key={i} className="game-info-tag">
+                        {tag}
+                      </span>
+                    ));
+                  })()}
+                </div>
+                <div className="tags-container">
+                  {(() => {
+                    const tags: string[] = [];
+                    if (gameContext.isDoubleRiichi) tags.push("两立直");
+                    else if (gameContext.isRiichi) tags.push("立直");
+                    if (gameContext.isIppatsu) tags.push("一发");
+                    if (gameContext.isHaitei) tags.push("海底捞月");
+                    if (gameContext.isHoutei) tags.push("河底捞鱼");
+                    if (gameContext.isRinshan) tags.push("岭上开花");
+                    if (gameContext.isChankan) tags.push("抢杠");
+                    return tags.map((tag, i) => (
+                      <span key={i} className="game-info-tag">
+                        {tag}
+                      </span>
+                    ));
+                  })()}
+                  <span
+                    className={`game-info-tag ${isTsumo ? "tsumo" : "ron"}`}
+                  >
+                    {isTsumo ? "自摸" : "荣和"}
                   </span>
-                ));
-              })()}
-            </div>
-            <div className="tags-container">
-              {(() => {
-                const tags: string[] = [];
-                if (gameContext.isDoubleRiichi) tags.push("两立直");
-                else if (gameContext.isRiichi) tags.push("立直");
-                if (gameContext.isIppatsu) tags.push("一发");
-                if (gameContext.isHaitei) tags.push("海底捞月");
-                if (gameContext.isHoutei) tags.push("河底捞鱼");
-                if (gameContext.isRinshan) tags.push("岭上开花");
-                if (gameContext.isChankan) tags.push("抢杠");
-                return tags.map((tag, i) => (
-                  <span key={i} className="game-info-tag">
-                    {tag}
-                  </span>
-                ));
-              })()}
-              <span className={`game-info-tag ${isTsumo ? "tsumo" : "ron"}`}>
-                {isTsumo ? "自摸" : "荣和"}
-              </span>
-            </div>
-          </div>
-
-          {/* 宝牌展示区 */}
-          <div className="dora-display-area">
-            <div className="dora-indicator-row">
-              <span className="dora-indicator-label">宝牌</span>
-              <div className="dora-indicator-tiles">
-                {[0, 1, 2, 3, 4].map((i) => {
-                  if (i < gameContext.doraIndicators.length) {
-                    return (
-                      <div key={i} className="dora-slot dora-slot-active">
-                        <Tile
-                          tile={gameContext.doraIndicators[i]}
-                          size="small"
-                          dir="out"
-                        />
-                      </div>
-                    );
-                  }
-                  return (
-                    <div key={i} className="dora-slot dora-slot-empty">
-                      <Tile
-                        tile={{ suit: "man", value: 1, id: -1 }}
-                        size="small"
-                        dir="out"
-                        faceDown={true}
-                      />
-                    </div>
-                  );
-                })}
+                </div>
               </div>
-            </div>
-            {(gameContext.isRiichi || gameContext.isDoubleRiichi) && (
-              <div className="dora-indicator-row">
-                <span className="dora-indicator-label">里宝牌</span>
-                <div className="dora-indicator-tiles">
-                  {[0, 1, 2, 3, 4].map((i) => {
-                    if (i < gameContext.uraDoraIndicators.length) {
-                      return (
-                        <div key={i} className="dora-slot dora-slot-active">
+
+              {/* 宝牌展示区 */}
+              <div className="dora-display-area">
+                <div className="dora-indicator-row">
+                  <span className="dora-indicator-label">宝牌</span>
+                  <div className="dora-indicator-tiles">
+                    {[0, 1, 2, 3, 4].map((i) => {
+                      if (i < gameContext.doraIndicators.length) {
+                        return (
                           <Tile
-                            tile={gameContext.uraDoraIndicators[i]}
+                            key={i}
+                            tile={gameContext.doraIndicators[i]}
                             size="small"
+                            dir="out"
                           />
-                        </div>
-                      );
-                    }
-                    return (
-                      <div key={i} className="dora-slot dora-slot-empty">
+                        );
+                      }
+                      return (
                         <Tile
+                          key={i}
                           tile={{ suit: "man", value: 1, id: -1 }}
                           size="small"
+                          dir="out"
                           faceDown={true}
                         />
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* 手牌展示区 */}
-          <div className="hand-area">
-            {handTiles.length > 0 && (
-              <Hand
-                tiles={handTiles}
-                winningTile={winningTile || undefined}
-                size="medium"
-              />
-            )}
-            {melds.length > 0 && <MeldsDisplay melds={melds} />}
-          </div>
-        </div>
-      )}
-
-      {error && <div className="error-message">{error}</div>}
-
-      <div className="section">
-        <h3>模拟报点</h3>
-        <div className="answer-input">
-          <div className="answer-item">
-            <label>支付报点:</label>
-            <input
-              type="text"
-              value={paymentAnswer}
-              onChange={(e) => setPaymentAnswer(e.target.value)}
-              placeholder="如: 500/1000、8000、2000ALL"
-              style={{ width: "300px" }}
-            />
-          </div>
-        </div>
-        <div className="answer-rules-info">
-          <div>宝牌区域显示的为宝牌指示牌</div>
-          <div>报点需要考虑当前本场数</div>
-          <div>如果不能和牌(型听/炸和)，支付报点为0</div>
-          <div>役满封顶，不计算双倍役满和复合役满</div>
-        </div>
-        <div className="action-buttons">
-          <button onClick={handleCheckAnswer} className="action-btn">
-            检查答案
-          </button>
-          <button onClick={handleReset} className="action-btn secondary">
-            重置
-          </button>
-        </div>
-      </div>
-
-      <div className="section">
-        <h3>计算结果</h3>
-        <button onClick={handleCalculate} className="action-btn">
-          计算得分
-        </button>
-
-        {result && (
-          <div className="result">
-            <div className="result-summary">
-              <div className="result-item">
-                <span className="label">符数:</span>
-                <span className="value">{result.fu}符</span>
-              </div>
-              <div className="result-item">
-                <span className="label">番数:</span>
-                <span className="value">{result.han}番</span>
-              </div>
-              <div className="result-item">
-                <span className="label">基本点:</span>
-                <span className="value">{result.points}点</span>
-              </div>
-              {result.honba > 0 && (
-                <div className="result-item">
-                  <span className="label">本场数:</span>
-                  <span className="value">{result.honba}本场</span>
-                </div>
-              )}
-            </div>
-
-            {result.isKeiten && (
-              <div className="result-keiten">
-                ⚠️ 型听（形式听牌）：没有正式役种，无法和牌
-              </div>
-            )}
-
-            {result.fuBreakdown && (
-              <div className="result-fu-breakdown">
-                <h4>符数计算过程:</h4>
-                {result.fuBreakdown.specialNote ? (
-                  <div className="fu-breakdown-special">
-                    {result.fuBreakdown.specialNote}
-                  </div>
-                ) : (
-                  <div className="fu-breakdown-table">
-                    {result.fuBreakdown.items.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className={`fu-breakdown-row fu-type-${item.type}`}
-                      >
-                        <span className="fu-breakdown-label">{item.label}</span>
-                        <span className="fu-breakdown-value">
-                          {item.type === "add"
-                            ? `+${item.fu}符`
-                            : item.type === "subtotal"
-                              ? `${item.fu}符`
-                              : item.type === "rounding" ||
-                                  item.type === "floor"
-                                ? `${item.fu}符`
-                                : `${item.fu}符`}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="result-yaku">
-              <h4>役种:</h4>
-              <ul>
-                {result.yaku.map((yaku, idx) => (
-                  <li key={idx}>
-                    {yaku.name} ({yaku.han}番)
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="result-payment">
-              <h4>支付:</h4>
-              {result.isKeiten ? (
-                <p className="payment-amount">0</p>
-              ) : isTsumo ? (
-                gameContext.playerWind === "east" ? (
-                  <>
-                    <p className="payment-amount">{result.dealer.tsumo} ALL</p>
-                    {result.honba > 0 && (
-                      <p className="payment-honba">
-                        （含场供 {result.honba * 300}点，每家 +
-                        {result.honba * 100}点）
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <p className="payment-amount">
-                      {result.nonDealer.tsumo.fromNonDealer} /{" "}
-                      {result.nonDealer.tsumo.fromDealer}
-                    </p>
-                    {result.honba > 0 && (
-                      <p className="payment-honba">
-                        （子/亲，含场供 {result.honba * 300}点，每家 +
-                        {result.honba * 100}点）
-                      </p>
-                    )}
-                  </>
-                )
-              ) : (
-                <>
-                  <p className="payment-amount">
-                    {gameContext.playerWind === "east"
-                      ? result.dealer.ron
-                      : result.nonDealer.ron}
-                    点
-                  </p>
-                  {result.honba > 0 && (
-                    <p className="payment-honba">
-                      （含场供 +{result.honba * 300}点）
-                    </p>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 自定义设置弹窗 */}
-      {showCustomModal && (
-        <div
-          className="modal-overlay"
-          onMouseDown={() => setShowCustomModal(false)}
-        >
-          <div
-            className="modal custom-modal"
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <div className="custom-modal-header">
-              <h2>自定义设置</h2>
-              <button
-                className="modal-close-btn"
-                onClick={() => setShowCustomModal(false)}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="custom-modal-body">
-              {/* 场况设置 */}
-              <div className="custom-section">
-                <h3>场况设置</h3>
-                <div className="game-context">
-                  <div className="context-item">
-                    <label>场风:</label>
-                    <select
-                      value={gameContext.round}
-                      onChange={(e) =>
-                        setGameContext({
-                          ...gameContext,
-                          round: e.target.value as any,
-                        })
-                      }
-                    >
-                      <option value="east">东</option>
-                      <option value="south">南</option>
-                      <option value="west">西</option>
-                    </select>
-                  </div>
-
-                  <div className="context-item">
-                    <label>局数:</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="4"
-                      value={gameContext.roundNumber}
-                      onChange={(e) =>
-                        setGameContext({
-                          ...gameContext,
-                          roundNumber: parseInt(e.target.value),
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="context-item">
-                    <label>自风:</label>
-                    <select
-                      value={gameContext.playerWind}
-                      onChange={(e) =>
-                        setGameContext({
-                          ...gameContext,
-                          playerWind: e.target.value as any,
-                        })
-                      }
-                    >
-                      <option value="east">东</option>
-                      <option value="south">南</option>
-                      <option value="west">西</option>
-                      <option value="north">北</option>
-                    </select>
-                  </div>
-
-                  <div className="context-item">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={isTsumo}
-                        onChange={(e) => setIsTsumo(e.target.checked)}
-                      />
-                      自摸
-                    </label>
-                  </div>
-
-                  <div className="context-item">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={gameContext.isRiichi}
-                        onChange={(e) =>
-                          setGameContext({
-                            ...gameContext,
-                            isRiichi: e.target.checked,
-                          })
-                        }
-                      />
-                      立直
-                    </label>
-                  </div>
-
-                  <div className="context-item">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={gameContext.isDoubleRiichi}
-                        onChange={(e) =>
-                          setGameContext({
-                            ...gameContext,
-                            isDoubleRiichi: e.target.checked,
-                          })
-                        }
-                      />
-                      两立直
-                    </label>
-                  </div>
-
-                  <div className="context-item">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={gameContext.isIppatsu}
-                        onChange={(e) =>
-                          setGameContext({
-                            ...gameContext,
-                            isIppatsu: e.target.checked,
-                          })
-                        }
-                      />
-                      一发
-                    </label>
-                  </div>
-
-                  <div className="context-item">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={gameContext.isHaitei}
-                        onChange={(e) =>
-                          setGameContext({
-                            ...gameContext,
-                            isHaitei: e.target.checked,
-                          })
-                        }
-                      />
-                      海底捞月
-                    </label>
-                  </div>
-
-                  <div className="context-item">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={gameContext.isHoutei}
-                        onChange={(e) =>
-                          setGameContext({
-                            ...gameContext,
-                            isHoutei: e.target.checked,
-                          })
-                        }
-                      />
-                      河底捞鱼
-                    </label>
-                  </div>
-
-                  <div className="context-item">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={gameContext.isRinshan}
-                        onChange={(e) =>
-                          setGameContext({
-                            ...gameContext,
-                            isRinshan: e.target.checked,
-                          })
-                        }
-                      />
-                      岭上开花
-                    </label>
-                  </div>
-
-                  <div className="context-item">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={gameContext.isChankan}
-                        onChange={(e) =>
-                          setGameContext({
-                            ...gameContext,
-                            isChankan: e.target.checked,
-                          })
-                        }
-                      />
-                      抢杠
-                    </label>
-                  </div>
-
-                  <div className="context-item">
-                    <label>本场数:</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="99"
-                      value={gameContext.honba}
-                      onChange={(e) =>
-                        setGameContext({
-                          ...gameContext,
-                          honba: Math.max(0, parseInt(e.target.value) || 0),
-                        })
-                      }
-                      style={{ width: "60px" }}
-                    />
+                      );
+                    })}
                   </div>
                 </div>
-              </div>
-
-              {/* 宝牌与里宝牌 */}
-              <div className="custom-section">
-                <h3>宝牌与里宝牌</h3>
-                <div className="dora-section">
-                  <div className="dora-group">
-                    <div className="dora-label">
-                      <span className="dora-title">宝牌指示牌</span>
-                      <span className="dora-hint">
-                        （最多5张，输入单张后点击"翻开"）
-                      </span>
-                    </div>
-                    <div className="dora-slots">
-                      {[0, 1, 2, 3, 4].map((i) => {
-                        if (i < gameContext.doraIndicators.length) {
-                          return (
-                            <div
-                              key={i}
-                              className="dora-slot dora-slot-active"
-                              onClick={() => handleRemoveDora(i)}
-                              title="点击移除"
-                            >
-                              <Tile
-                                tile={gameContext.doraIndicators[i]}
-                                size="small"
-                              />
-                            </div>
-                          );
-                        }
-                        return (
-                          <div key={i} className="dora-slot dora-slot-empty">
-                            <Tile
-                              tile={{ suit: "man", value: 1, id: -1 }}
-                              size="small"
-                              faceDown={true}
-                            />
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="dora-input-row">
-                      <input
-                        type="text"
-                        value={doraInput}
-                        onChange={(e) => setDoraInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleAddDora();
-                        }}
-                        placeholder="输入单张指示牌，如: 3m"
-                        className="dora-input"
-                      />
-                      <button onClick={handleAddDora} className="dora-btn">
-                        翻开
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="dora-group">
-                    <div className="dora-label">
-                      <span className="dora-title">里宝牌指示牌</span>
-                      <span className="dora-hint">（立直时有效，最多5张）</span>
-                    </div>
-                    <div className="dora-slots">
+                {(gameContext.isRiichi || gameContext.isDoubleRiichi) && (
+                  <div className="dora-indicator-row">
+                    <span className="dora-indicator-label">里宝牌</span>
+                    <div className="dora-indicator-tiles">
                       {[0, 1, 2, 3, 4].map((i) => {
                         if (i < gameContext.uraDoraIndicators.length) {
                           return (
-                            <div
+                            <Tile
                               key={i}
-                              className="dora-slot dora-slot-active"
-                              onClick={() => handleRemoveUraDora(i)}
-                              title="点击移除"
-                            >
-                              <Tile
-                                tile={gameContext.uraDoraIndicators[i]}
-                                size="small"
-                              />
-                            </div>
+                              tile={gameContext.uraDoraIndicators[i]}
+                              size="small"
+                              dir="out"
+                            />
                           );
                         }
                         return (
-                          <div key={i} className="dora-slot dora-slot-empty">
-                            <Tile
-                              tile={{ suit: "man", value: 1, id: -1 }}
-                              size="small"
-                              faceDown={true}
-                            />
-                          </div>
+                          <Tile
+                            key={i}
+                            tile={{ suit: "man", value: 1, id: -1 }}
+                            size="small"
+                            dir="out"
+                            faceDown={true}
+                          />
                         );
                       })}
                     </div>
-                    <div className="dora-input-row">
-                      <input
-                        type="text"
-                        value={uraDoraInput}
-                        onChange={(e) => setUraDoraInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleAddUraDora();
-                        }}
-                        placeholder="输入单张指示牌，如: 7z"
-                        className="dora-input"
-                      />
-                      <button onClick={handleAddUraDora} className="dora-btn">
-                        翻开
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 手牌输入 */}
-              <div className="custom-section">
-                <h3>
-                  <span>手牌输入</span>
-                  <span className="dora-hint">（请输入一副和牌的手牌）</span>
-                </h3>
-
-                <div className="hand-input-row">
-                  <input
-                    type="text"
-                    value={handInput}
-                    onChange={handleHandInputChange}
-                    placeholder="输入手牌，如: 123m456p789s1122z1z (最后一张为和了牌)&#10;或带鸣牌: 234m567p c123m p111z 2z2z (鸣牌: c=吃 p=碰 k=明杠 a=暗杠 g=加杠)"
-                    className="hand-input"
-                  />
-                </div>
-                {(handTiles.length > 0 || melds.length > 0) && (
-                  <div className="hand-area" style={{ marginTop: "12px" }}>
-                    {handTiles.length > 0 && (
-                      <Hand
-                        tiles={handTiles}
-                        winningTile={winningTile || undefined}
-                        size="medium"
-                      />
-                    )}
-                    {melds.length > 0 && <MeldsDisplay melds={melds} />}
                   </div>
                 )}
               </div>
             </div>
+            <div className="table-bottom">
+              <div className="answer-item">
+                <label>支付报点 :</label>
+                <KeypadInput
+                  type="text"
+                  value={paymentAnswer}
+                  onChange={setPaymentAnswer}
+                  placeholder="如: 500/1000、8000、2000ALL"
+                />
+                <button
+                  className="button reminder"
+                  onClick={() => setShowAnswerRulesModal(true)}
+                ></button>
+                <button
+                  className="button submit"
+                  onClick={handleCheckAnswer}
+                ></button>
 
-            <div className="custom-modal-footer">
-              <button
-                onClick={() => setShowCustomModal(false)}
-                className="action-btn"
-              >
-                完成
-              </button>
+                <button className="button reset" onClick={handleReset}></button>
+              </div>
+
+              {/* 手牌展示区 */}
+              <div className="hand-area">
+                <RichHand tilesStr={handInput} />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <ReferenceModal
-        isOpen={showReference}
-        onClose={() => setShowReference(false)}
-      />
+        <CustomModal
+          title="报点说明"
+          isOpen={showAnswerRulesModal}
+          onClose={() => setShowAnswerRulesModal(false)}
+        >
+          <div className="answer-rules-info">
+            <div>宝牌区域显示的为宝牌指示牌</div>
+            <div>报点需要考虑当前本场数</div>
+            <div>如果不能和牌(形听/炸和)，支付报点为0</div>
+          </div>
+        </CustomModal>
+        {/* 计算结果 */}
+        <CustomModal
+          title="计算结果"
+          isOpen={!!result}
+          onClose={closeResult(false)}
+        >
+          {result && (
+            <div className="result">
+              <div className="result-summary">
+                <div>
+                  <div className="result-item">
+                    <span className="label">符数:</span>
+                    <span className="value">{result.fu}符</span>
+                  </div>
+                  <div className="result-item">
+                    <span className="label">番数:</span>
+                    <span className="value">{result.han}番</span>
+                  </div>
+                  <div className="result-item">
+                    <span className="label">基本点:</span>
+                    <span className="value">{result.points}点</span>
+                  </div>
+                  {result.honba > 0 && (
+                    <div className="result-item">
+                      <span className="label">本场数:</span>
+                      <span className="value">{result.honba}本场</span>
+                    </div>
+                  )}
+                  <div className="result-item">
+                    <span className="label">报点:</span>
+                    <span className="value">
+                      {result.isKeiten
+                        ? 0
+                        : isTsumo
+                          ? gameContext.playerWind === "east"
+                            ? `${result.dealer.tsumo} ALL `
+                            : `${result.nonDealer.tsumo.fromNonDealer} / ${result.nonDealer.tsumo.fromDealer}`
+                          : `${gameContext.playerWind === "east" ? result.dealer.ron : result.nonDealer.ron}`}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <button
+                    className="button next"
+                    onClick={closeResult(true)}
+                  ></button>
+                </div>
+              </div>
+              {result.isKeiten ? (
+                <div className="result-keiten">
+                  ⚠️ 形听（形式听牌）：没有正式役种，无法和牌
+                </div>
+              ) : (
+                <div className="result-details">
+                  {result.fuBreakdown && (
+                    <div className="result-fu-breakdown">
+                      <h4>符数计算过程:</h4>
+                      {result.fuBreakdown.specialNote ? (
+                        <div className="fu-breakdown-special">
+                          {result.fuBreakdown.specialNote}
+                        </div>
+                      ) : (
+                        <div className="fu-breakdown-table">
+                          {result.fuBreakdown.items.map((item, idx) => (
+                            <div
+                              key={idx}
+                              className={`fu-breakdown-row fu-type-${item.type}`}
+                            >
+                              <span className="fu-breakdown-label">
+                                {item.label}
+                              </span>
+                              <span className="fu-breakdown-value">
+                                {item.type === "add"
+                                  ? `+${item.fu}符`
+                                  : item.type === "subtotal"
+                                    ? `${item.fu}符`
+                                    : item.type === "rounding" ||
+                                        item.type === "floor"
+                                      ? `${item.fu}符`
+                                      : `${item.fu}符`}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <div className="result-yaku">
+                    <h4>役种:</h4>
+                    <ul>
+                      {result.yaku.map((yaku, idx) => (
+                        <li key={idx}>
+                          {yaku.name} ({yaku.han}番)
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="points-name">
+                      {getBasePointsName(result.points)}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="result-payment">
+                <h4>支付:</h4>
+                {result.isKeiten ? (
+                  <p className="payment-amount">0</p>
+                ) : isTsumo ? (
+                  gameContext.playerWind === "east" ? (
+                    <>
+                      <p className="payment-amount">
+                        {result.dealer.tsumo} ALL
+                      </p>
+                      {result.honba > 0 && (
+                        <p className="payment-honba">
+                          （含场供 {result.honba * 300}点，每家 +
+                          {result.honba * 100}点）
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p className="payment-amount">
+                        {result.nonDealer.tsumo.fromNonDealer} /{" "}
+                        {result.nonDealer.tsumo.fromDealer}
+                      </p>
+                      {result.honba > 0 && (
+                        <p className="payment-honba">
+                          （子/亲，含场供 {result.honba * 300}点，每家 +
+                          {result.honba * 100}点）
+                        </p>
+                      )}
+                    </>
+                  )
+                ) : (
+                  <>
+                    <p className="payment-amount">
+                      {gameContext.playerWind === "east"
+                        ? result.dealer.ron
+                        : result.nonDealer.ron}
+                      点
+                    </p>
+                    {result.honba > 0 && (
+                      <p className="payment-honba">
+                        （含场供 +{result.honba * 300}点）
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </CustomModal>
+        {/* 报点参考 */}
+        <ReferenceModal
+          isOpen={showReference}
+          onClose={() => setShowReference(false)}
+        />
+      </div>
     </div>
   );
 };

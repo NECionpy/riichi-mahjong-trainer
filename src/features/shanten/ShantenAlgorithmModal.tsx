@@ -1,5 +1,5 @@
 import React from "react";
-import "./ShantenAlgorithmModal.css";
+import "./ShantenAlgorithmModal.less";
 import CustomModal from "../../components/Modal/CustomModal";
 
 interface ShantenAlgorithmModalProps {

@@ -1,5 +1,5 @@
 // ============================================================
-// 报点模拟器 — 参考数据（符数表、点数表、番种图谱）
+// 报点训练 — 参考数据（符数表、点数表、番种图谱）
 // ============================================================
 
 // ---- 符数计算规则 ----
@@ -20,7 +20,7 @@ export const fuTable: FuRuleSection[] = [
   {
     title: '底符（基本符）',
     items: [
-      { category: '和了', condition: '基本符', fu: 20 },
+      { category: '和牌', condition: '基本符', fu: 20 },
     ],
   },
   {
@@ -198,8 +198,8 @@ export const yakuChart: YakuCategory[] = [
       { name: '役牌·三元', nameJa: '役牌（三元）', han: 1, condition: '副露可', description: '白 / 发 / 中 刻子', handExample: '555z234m456p789s22m' },
       { name: '海底捞月', nameJa: '海底撈月', han: 1, condition: '副露可', description: '最后一张牌自摸和牌', handExample: '123m678m456p789s11z' },
       { name: '河底捞鱼', nameJa: '河底撈魚', han: 1, condition: '副露可', description: '最后一张牌荣和', handExample: '123m678m456p789s11z' },
-      { name: '岭上开花', nameJa: '嶺上開花', han: 1, condition: '副露可', description: '杠后补牌自摸和牌', handExample: '123m678m56p1111p11z4p' },
-      { name: '抢杠', nameJa: '搶槓', han: 1, condition: '副露可', description: '他人加杠时荣和', handExample: 'p111m1m' },
+      { name: '岭上开花', nameJa: '嶺上開花', han: 1, condition: '副露可', description: '杠后补牌自摸和牌', handExample: '123m678m56pa1111p11z4p' },
+      { name: '抢杠', nameJa: '搶槓', han: 1, condition: '副露可', description: '他人加杠时荣和', handExample: 'g1111m' },
     ],
   },
   {
@@ -210,7 +210,7 @@ export const yakuChart: YakuCategory[] = [
       { name: '对对和', nameJa: '対々和', han: 2, condition: '副露可', description: '4 组刻子（或杠子）', handExample: '111m222p333s444z55m' },
       { name: '三暗刻', nameJa: '三暗刻', han: 2, condition: '副露可', description: '3 组暗刻（副露后也可）', handExample: '111m222p333s44z45m3m' },
       { name: '三色同刻', nameJa: '三色同刻', han: 2, condition: '副露可', description: '万/筒/索 同数字刻子', handExample: '111m111p111s22z34m5m' },
-      { name: '三杠子', nameJa: '三槓子', han: 2, condition: '副露可', description: '3 组杠子', handExample: '1111m2222p3333s44z55m' },
+      { name: '三杠子', nameJa: '三槓子', han: 2, condition: '副露可', description: '3 组杠子', handExample: 'a1111mg2222pk3333s44z55m' },
       { name: '混老头', nameJa: '混老頭', han: 2, condition: '副露可', description: '仅由幺九牌组成（1/9/字牌）', handExample: '111m999p111s22z11p1p' },
       { name: '小三元', nameJa: '小三元', han: 2, condition: '副露可', description: '2 组三元刻子 + 三元雀头', handExample: '555z666z77z123m34p5p' },
       { name: '三色同顺', nameJa: '三色同順', han: 2, condition: '门清 2 / 副露 1', description: '万/筒/索 同数字顺子', handExample: '123m123p123s22z33m3m' },
@@ -247,9 +247,9 @@ export const yakuChart: YakuCategory[] = [
       { name: '绿一色', nameJa: '緑一色', han: '役满', condition: '副露可', description: '仅由 2s/3s/4s/6s/8s/发 组成', handExample: '223344s666s66z88s6z' },
       { name: '九莲宝灯', nameJa: '九蓮宝燈', han: '役满', condition: '门清限定', description: '同花色 1112345678999 + 任意 1 张', handExample: '11123445678999m' },
       { name: '纯正九莲宝灯', nameJa: '純正九蓮宝燈', han: '双倍役满', condition: '门清限定', description: '九莲宝灯 9 面听牌', handExample: '1112345678999m4m' },
-      { name: '四杠子', nameJa: '四槓子', han: '役满', condition: '副露可', description: '4 组杠子', handExample: '1111m2222p3333s4444z55m' },
-      { name: '天和', nameJa: '天和', han: '役满', condition: '门清限定', description: '亲家配牌即和牌', handExample: '—' },
-      { name: '地和', nameJa: '地和', han: '役满', condition: '门清限定', description: '子家第一巡自摸和牌', handExample: '—' },
+      { name: '四杠子', nameJa: '四槓子', han: '役满', condition: '副露可', description: '4 组杠子', handExample: 'a1111mk2222pg3333sa4444z55m' },
+      { name: '天和', nameJa: '天和', han: '役满', condition: '门清限定', description: '亲家配牌即和牌', handExample: '' },
+      { name: '地和', nameJa: '地和', han: '役满', condition: '门清限定', description: '子家第一巡自摸和牌', handExample: '' },
     ],
   },
 ];

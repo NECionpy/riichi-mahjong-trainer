@@ -36,6 +36,20 @@ const MELD_IS_OPEN: Record<MeldType, boolean> = {
   'kakan': true,
 };
 
+export const TILE_NAMES = [
+  // manzu
+  "1m", "2m", "3m", "4m", "5m", "6m", "7m", "8m", "9m",
+
+  // pinzu
+  "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p",
+
+  // souzu
+  "1s", "2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s",
+
+  // honors
+  "1z", "2z", "3z", "4z", "5z", "6z", "7z",
+];
+
 // 手牌解析结果
 export interface ParsedHand {
   handTiles: Tile[];   // 手牌（不含鸣牌和和了牌）
@@ -236,6 +250,15 @@ export function tileToString(tile: Tile): string {
     const suitChar = Object.entries(SUIT_ABBREVIATIONS).find(([_, s]) => s === tile.suit)?.[0];
     return `${tile.value}${suitChar}`;
   }
+}
+
+/**
+ * 将字符串转换为牌
+ */
+
+export function stringToTile(str: string): Tile | undefined {
+  const tiles = parseTileString(str);
+  if(tiles.length) return tiles[0]
 }
 
 /**

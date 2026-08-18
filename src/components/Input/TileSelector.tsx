@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useToast } from '../Toast/ToastContext';
 import Tile from '../Tile/Tile';
 import { Tile as TileType, TileSuit, TileValue, HonorType, createTile, parseTileString } from '../../core/tile';
-import './TileSelector.css';
+import './TileSelector.less';
 
 interface TileSelectorProps {
   onTileSelect: (tile: TileType) => void;

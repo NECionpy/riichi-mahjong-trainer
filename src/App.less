@@ -1,0 +1,75 @@
+/* ============================================================
+   全局布局
+   ============================================================ */
+
+.app {
+  left: 50%;
+  top: 50%;
+  position: absolute;
+  transform-origin: center center;
+  /* 防止游戏区域参与父容器布局 */
+  margin: 0;
+  padding: 0;
+  background: url("./images/background.jpg") no-repeat center center;
+  display: flex;
+  flex-direction: column;
+  background-size: cover;
+}
+
+/* ============================================================
+   Main Content
+   ============================================================ */
+.app-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: #56565623;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  height: 100%;
+}
+
+.app-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 40px auto 20px;
+  width: 100%;
+  flex: 1;
+
+  & > section {
+    width: 96%;
+    height: 100%;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: box-shadow 0.2s;
+    background: linear-gradient(145deg, #2d6a4f 0%, #1b4332 100%);
+    .answer {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+      button {
+        border: 2px #ffffff00 solid;
+        &.selected {
+          border: 2px #168aefaa solid;
+          box-shadow: 0 0 8px #168aefaa;
+        }
+      }
+    }
+
+    .section-top {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      padding: 10px 20px;
+    }
+
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 70px;
+    }
+  }
+}

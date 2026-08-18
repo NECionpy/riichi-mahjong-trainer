@@ -1,0 +1,37 @@
+.custom-keypadinput {
+  position: relative;
+  input {
+    position: relative;
+  }
+  .custom-input-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999;
+  }
+  .keypad {
+    position: absolute;
+    padding: 30px 10px 10px;
+    left: 100%;
+    top: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1.5px solid rgba(242, 202, 80, 0.3);
+    border-radius: 15px;
+     z-index: 1200;
+    table {
+      tr {
+        td {
+          padding: 2px 6px;
+          img {
+            width: 160px;
+            cursor: pointer;
+            user-select: none;
+          }
+        }
+      }
+    }
+  }
+}

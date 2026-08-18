@@ -44,12 +44,12 @@ export function getTileImageName(tile: Tile): string {
  * 获取牌的完整图片路径
  */
 export function getTileImagePath(tile: Tile, dir: TileImageDir = 'hand'): string {
-  return `./images/card/${dir}/${getTileImageName(tile)}`;
+  return `./images/tiles/${dir}/${getTileImageName(tile)}`;
 }
 
 /**
  * 获取牌背图片路径
  */
 export function getTileBackImagePath(dir: TileImageDir = 'out'): string {
-  return `./images/card/${dir}/back.png`;
+  return `./images/tiles/${dir}/back.png`;
 }

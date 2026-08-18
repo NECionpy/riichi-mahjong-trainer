@@ -2,14 +2,14 @@ import React from "react";
 import Tile from "../Tile/Tile";
 import { Tile as TileType } from "../../core/tile";
 import { TileImageDir } from "../../utils/tileImage";
-import "./Hand.css";
+import "./Hand.less";
 
 interface HandProps {
   tiles: TileType[];
   winningTile?: TileType;
   isTsumo?: boolean;
   highlightedTiles?: TileType[];
-  size?: "small" | "medium" | "large";
+  size?: "tiny" | "small" | "medium" | "large";
   dir?: TileImageDir;
   faceDown?: boolean;
 }
@@ -45,7 +45,7 @@ const Hand: React.FC<HandProps> = ({
       </div>
       {winningTile && (
         <>
-          <div className="hand-separator" />
+          <div className={`hand-separator ${size}`}>&nbsp;</div>
           <div className="hand-winning-tile">
             {isTsumo !== undefined && (
               <div

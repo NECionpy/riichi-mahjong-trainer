@@ -1,0 +1,50 @@
+.melds-display {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  flex-shrink: 0;
+
+
+  .meld-group {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+  }
+
+  .meld-tiles {
+    display: flex;
+    gap: 0;
+    align-items: flex-end;
+  }
+
+  .meld-tiles .tile {
+    transform-origin: center;
+  }
+
+  /* 加杠样式 */
+  .meld-group.meld-kakan {
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+  }
+
+  .meld-kakan-middle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 -2px;
+  }
+
+  .meld-kakan-middle {
+    .tile {
+      margin-bottom: -3px;
+    }
+  }
+
+  .meld-kakan-middle .tile:first-child {
+    margin-bottom: -28px;
+    &.tile-tiny {
+      margin-bottom: -30px;
+    }
+  }
+}
