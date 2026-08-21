@@ -500,6 +500,7 @@ const ReferenceModal: React.FC<ReferenceModalProps> = ({ isOpen, onClose }) => {
       title="报点参考"
       className="ref-modal"
       isOpen={isOpen}
+      width="1600px"
       onClose={onClose}
     >
       <div className="ref-modal-tabs">

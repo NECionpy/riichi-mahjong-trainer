@@ -600,7 +600,7 @@ const PointCalc: React.FC = () => {
 
   const handleGenerateGame = () => {
     const generated = getEffectiveGame();
-
+    // setHandInput('k1111zk2222zk3333zk4444z55z');
     setHandInput(generated.handInput);
     const parsed = parseHandString(generated.handInput);
     setHandTiles(sortTiles(parsed.handTiles));
@@ -699,7 +699,6 @@ const PointCalc: React.FC = () => {
                           <Tile
                             key={i}
                             tile={gameContext.doraIndicators[i]}
-                            size="small"
                             dir="out"
                           />
                         );
@@ -708,7 +707,6 @@ const PointCalc: React.FC = () => {
                         <Tile
                           key={i}
                           tile={{ suit: "man", value: 1, id: -1 }}
-                          size="small"
                           dir="out"
                           faceDown={true}
                         />
@@ -726,7 +724,6 @@ const PointCalc: React.FC = () => {
                             <Tile
                               key={i}
                               tile={gameContext.uraDoraIndicators[i]}
-                              size="small"
                               dir="out"
                             />
                           );
@@ -735,7 +732,6 @@ const PointCalc: React.FC = () => {
                           <Tile
                             key={i}
                             tile={{ suit: "man", value: 1, id: -1 }}
-                            size="small"
                             dir="out"
                             faceDown={true}
                           />
@@ -790,6 +786,7 @@ const PointCalc: React.FC = () => {
         <CustomModal
           title="计算结果"
           isOpen={!!result}
+          minWidth="1000px"
           onClose={closeResult(false)}
         >
           {result && (
@@ -826,12 +823,6 @@ const PointCalc: React.FC = () => {
                           : `${gameContext.playerWind === "east" ? result.dealer.ron : result.nonDealer.ron}`}
                     </span>
                   </div>
-                </div>
-                <div>
-                  <button
-                    className="button next"
-                    onClick={closeResult(true)}
-                  ></button>
                 </div>
               </div>
               {result.isKeiten ? (
@@ -890,51 +881,57 @@ const PointCalc: React.FC = () => {
               )}
 
               <div className="result-payment">
-                <h4>支付:</h4>
-                {result.isKeiten ? (
-                  <p className="payment-amount">0</p>
-                ) : isTsumo ? (
-                  gameContext.playerWind === "east" ? (
-                    <>
-                      <p className="payment-amount">
-                        {result.dealer.tsumo} ALL
-                      </p>
-                      {result.honba > 0 && (
-                        <p className="payment-honba">
-                          （含场供 {result.honba * 300}点，每家 +
-                          {result.honba * 100}点）
+                <div>
+                  <h4>支付:</h4>
+                  {result.isKeiten ? (
+                    <p className="payment-amount">0</p>
+                  ) : isTsumo ? (
+                    gameContext.playerWind === "east" ? (
+                      <>
+                        <p className="payment-amount">
+                          {result.dealer.tsumo} ALL
                         </p>
-                      )}
-                    </>
+                        {result.honba > 0 && (
+                          <p className="payment-honba">
+                            （含场供 {result.honba * 300}点，每家 +
+                            {result.honba * 100}点）
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <p className="payment-amount">
+                          {result.nonDealer.tsumo.fromNonDealer} /{" "}
+                          {result.nonDealer.tsumo.fromDealer}
+                        </p>
+                        {result.honba > 0 && (
+                          <p className="payment-honba">
+                            （子/亲，含场供 {result.honba * 300}点，每家 +
+                            {result.honba * 100}点）
+                          </p>
+                        )}
+                      </>
+                    )
                   ) : (
                     <>
                       <p className="payment-amount">
-                        {result.nonDealer.tsumo.fromNonDealer} /{" "}
-                        {result.nonDealer.tsumo.fromDealer}
+                        {gameContext.playerWind === "east"
+                          ? result.dealer.ron
+                          : result.nonDealer.ron}
+                        点
                       </p>
                       {result.honba > 0 && (
                         <p className="payment-honba">
-                          （子/亲，含场供 {result.honba * 300}点，每家 +
-                          {result.honba * 100}点）
+                          （含场供 +{result.honba * 300}点）
                         </p>
                       )}
                     </>
-                  )
-                ) : (
-                  <>
-                    <p className="payment-amount">
-                      {gameContext.playerWind === "east"
-                        ? result.dealer.ron
-                        : result.nonDealer.ron}
-                      点
-                    </p>
-                    {result.honba > 0 && (
-                      <p className="payment-honba">
-                        （含场供 +{result.honba * 300}点）
-                      </p>
-                    )}
-                  </>
-                )}
+                  )}
+                </div>
+                <button
+                  className="button next"
+                  onClick={closeResult(true)}
+                ></button>
               </div>
             </div>
           )}

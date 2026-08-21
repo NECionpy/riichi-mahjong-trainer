@@ -126,6 +126,7 @@ input {
 }
 
 button.button {
+   width: 270px;
   background-size: cover;
   background-color: transparent;
   background-repeat: no-repeat;
@@ -136,25 +137,27 @@ button.button {
     box-shadow: 0 6px 25px rgba(242, 202, 80, 0.2);
   }
   &.submit {
-    width: 180px;
     aspect-ratio: 360 / 127;
     background-image: url("./assets//images/submit.png");
   }
   &.reset {
-    width: 180px;
     aspect-ratio: 360 / 127;
     background-image: url("./assets/images/reset.png");
   }
   &.next {
-    width: 180px;
     aspect-ratio: 360 / 127;
     background-image: url("./assets/images/next.png");
   }
   &.reminder {
+    width: auto;
     height: 2rem;
     aspect-ratio: 1 / 1;
     background-image: url("./assets/images/reminder.png");
   }
+}
+
+.result .next-row{
+  text-align: center;
 }
 
 /* 滚动条美化 */

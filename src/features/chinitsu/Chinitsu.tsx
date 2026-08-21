@@ -273,11 +273,11 @@ const Chinitsu: React.FC = () => {
                   <div className="waiting-tiles">
                     <div className="tiles-display">
                       {waitResult.waitingTiles.map((tile, idx) => (
-                        <Tile key={idx} tile={tile} size="medium" />
+                        <Tile key={idx} tile={tile} size="small" />
                       ))}
                     </div>
                   </div>
-                  <div>
+                  <div className="next-row">
                     <button
                       className="button next"
                       onClick={closeModal(true)}

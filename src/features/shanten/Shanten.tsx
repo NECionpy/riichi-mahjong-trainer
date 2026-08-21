@@ -207,7 +207,7 @@ const Shanten: React.FC = () => {
       <div className="app-main shanten">
         <section className="section">
           <div className="section-top">
-            <div className="tips">请选择下方手牌的向听数：</div>
+            <div className="tips">请选择下方手牌的最小向听数：</div>
             <div className="answer">
               {options.map((opt) => (
                 <button
@@ -229,7 +229,7 @@ const Shanten: React.FC = () => {
           </div>
           {handTiles.length > 0 && <Hand tiles={handTiles} size="medium" />}
         </section>
-        <CustomModal title="计算结果" isOpen={!!result} onClose={closeModal()}>
+        <CustomModal title="计算结果" width="1200px" isOpen={!!result} onClose={closeModal()}>
           {result ? (
             <div className="result">
               <div className="result-summary final-shanten">
@@ -258,7 +258,7 @@ const Shanten: React.FC = () => {
                   ))}
                 </div>
               </div>
-              <div>
+             <div className="next-row">
                 <button
                   className="button next"
                   onClick={closeModal(true)}

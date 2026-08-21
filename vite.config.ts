@@ -15,6 +15,7 @@ export default defineConfig({
         description:
           "立直麻将训练器是一个专注于立直麻将的在线训练工具。它提供了丰富的功能，帮助玩家提高立直麻将技巧，包括牌型分析、听牌计算、点数计算、待摸牌训练等。",
         theme_color: "#000000",
+        display: "fullscreen",
         orientation: "landscape",
         icons: [
           {

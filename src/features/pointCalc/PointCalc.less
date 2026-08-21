@@ -17,7 +17,12 @@
     .result-payment {
       display: flex;
       align-items: center;
-      gap: 20px;
+      justify-content: space-between;
+      & > div {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
     }
 
     .result-summary {
@@ -241,8 +246,9 @@
         padding: 8px 24px;
         background: rgba(255, 255, 255, 0.92);
         color: #1b4332;
-        font-weight: 600;
+        font-weight: 700;
         border-radius: 45px;
+        font-size: 1.2rem;
         white-space: nowrap;
         &.tsumo {
           background: rgba(12, 114, 208, 0.9);
@@ -261,6 +267,7 @@
   .dora-display-area {
     display: flex;
     flex-direction: row;
+    justify-content: flex-start;
     gap: 16px;
     margin-bottom: 18px;
     padding: 8px 12px;
@@ -270,13 +277,15 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      margin-right: 10rem;
     }
 
     .dora-indicator-label {
       font-weight: 600;
       color: rgba(255, 255, 255, 0.85);
-      min-width: 60px;
-      text-align: right;
+      min-width: 120px;
+      font-weight: 1.2rem;
+      text-align: center;
     }
 
     .dora-indicator-tiles {
@@ -338,13 +347,14 @@
 .answer-item {
   display: flex;
   align-items: center;
-  margin-top: 10px;
+  justify-content: center;
+  margin-top: 1.4rem;
   padding: 0 10px;
   gap: 28px;
 
   label {
     font-weight: 500;
-    color: #fff;
+    color: var(--color-primary-light, #f2ca50);
     font-size: 1.3rem;
   }
 
@@ -354,7 +364,7 @@
 
   input:focus {
     outline: none;
-    border-color: var(--color-primary, #0f3460);
+    border-color: var(--color-primary-light, #f2ca50);
     box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
   }
 

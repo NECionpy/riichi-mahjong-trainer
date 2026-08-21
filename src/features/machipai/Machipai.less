@@ -6,9 +6,10 @@
   }
   .waiting-pick-hint {
     padding: 10px 0;
-    color: var(--color-primary, #d4af37);
+    color: var(--color-primary-light, #f2ca50);
     font-size: 1rem;
     font-weight: 500;
+    text-align: center;
   }
   .candidate-tiles {
     display: flex;
@@ -18,16 +19,10 @@
     display: flex;
     gap: 30px;
     align-items: center;
-    color: var(--color-primary, #d4af37);
-    input {
-      padding: 5px 10px;
-      border: 1px solid var(--color-primary, #d4af37);
-      border-radius: var(--radius-sm, 6px);
-      font-size: 1rem;
+    justify-content: center;
+    color: var(--color-primary-light, #f2ca50);
+    input {    
       width: 180px;
-      transition:
-        border-color 0.2s,
-        box-shadow 0.2s;
     }
     span {
       font-weight: 500;
@@ -45,6 +40,7 @@
     .tiles-display {
       display: flex;
       gap: 10px;
+      justify-content: center;
     }
   }
 }

@@ -171,7 +171,7 @@ const Machipai: React.FC = () => {
                   })}
                 </div>
               </div>
-              <div>
+              <div className="next-row">
                 <button
                   className="button next"
                   onClick={closeModal(true)}
