@@ -6,17 +6,15 @@ import Shanten from "./features/shanten/Shanten";
 import Chinitsu from "./features/chinitsu/Chinitsu";
 import "./App.less";
 import LandscapeGuard from "./components/LandscapeGuard/LandscapeGuard";
-import { getAllTiles, preloadImages } from "./utils/utils";
 import Machipai from "./features/machipai/Machipai";
 import { useGameScale } from "./hooks/gameScale";
-
-const imageUrls = getAllTiles();
-preloadImages(imageUrls);
+import AssetsLoader from "./components/AssetsLoader/AssetsLoader";
 
 function App() {
   const scale = useGameScale();
   return (
     <LandscapeGuard>
+      <AssetsLoader>
       <div
         className="app"
         style={{
@@ -37,6 +35,7 @@ function App() {
           </HashRouter>
         </ToastProvider>
       </div>
+      </AssetsLoader>
     </LandscapeGuard>
   );
 }

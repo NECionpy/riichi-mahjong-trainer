@@ -10,7 +10,7 @@ interface LandscapeGuardProps {
 const isMobile = isMobileBrowser();
 const isWeixin = isWeixinBrowser();
 
-const LandscapeGuard: React.FC<LandscapeGuardProps> = ({ children }) => {
+const LandscapeGuard: React.FC<LandscapeGuardProps> = ({ children, disabled }) => {
   const [isLandscape, setIsLandscape] = useState(
     window.matchMedia("(orientation: landscape)").matches,
   );
@@ -77,7 +77,7 @@ const LandscapeGuard: React.FC<LandscapeGuardProps> = ({ children }) => {
     <>
       {children}
 
-      {shouldShowGuard && isMobile ? (
+      {shouldShowGuard && isMobile && !disabled ? (
         <div className="landscape-guard">
           <div className="landscape-guard-content">
             <div className="rotate-icon">↻</div>

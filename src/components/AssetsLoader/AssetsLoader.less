@@ -1,0 +1,76 @@
+.assets-loader {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: url(./../../assets//images/loader-background.jpg) no-repeat;
+  background-size: cover;
+  background-color: #000;
+  .progress-bar {
+    position: absolute;
+    top: 62.9%;
+    left: 20.2%;
+    height: 7.2%;
+    width: 62.2%;
+    border-radius: 1.2rem;
+    overflow: hidden;
+    .progress-fill {
+      position: relative;
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        #b8860b 0%,
+        #d4a017 15%,
+        #f5d76e 30%,
+        #ffd700 50%,
+        #f5d76e 70%,
+        #d4a017 85%,
+        #b8860b 100%
+      );
+      background-size: 300% 100%;
+      transition: width 0.1s linear;
+      box-shadow:
+        0 0 25px rgba(255, 215, 0, 0.4),
+        0 0 60px rgba(255, 215, 0, 0.15),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3);
+      animation: goldShift 2s ease-in-out infinite alternate;
+    }
+
+    /* 金色渐变流动 */
+    @keyframes goldShift {
+      0% {
+        background-position: 0% 0%;
+      }
+      100% {
+        background-position: 100% 0%;
+      }
+    }
+
+    /* ===== 金属拉丝纹理 ===== */
+    .progress-fill::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50px;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0px,
+        rgba(255, 255, 255, 0.04) 2px,
+        transparent 4px,
+        transparent 8px
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+    .progress-label {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.8rem;
+      color: #555;
+    }
+  }
+}
