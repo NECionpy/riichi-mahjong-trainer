@@ -14,7 +14,6 @@ function App() {
   const scale = useGameScale();
   return (
     <LandscapeGuard>
-      <AssetsLoader>
       <div
         className="app"
         style={{
@@ -23,19 +22,20 @@ function App() {
           transform: `translate(-50%, -50%) scale(${scale.scale})`,
         }}
       >
-        <ToastProvider>
-          <HashRouter>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/pointCalc" element={<PointCalc />} />
-              <Route path="/shanten" element={<Shanten />} />
-              <Route path="/chinitsu" element={<Chinitsu />} />
-              <Route path="/machipai" element={<Machipai />} />
-            </Routes>
-          </HashRouter>
-        </ToastProvider>
+        <AssetsLoader>
+          <ToastProvider>
+            <HashRouter>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/pointCalc" element={<PointCalc />} />
+                <Route path="/shanten" element={<Shanten />} />
+                <Route path="/chinitsu" element={<Chinitsu />} />
+                <Route path="/machipai" element={<Machipai />} />
+              </Routes>
+            </HashRouter>
+          </ToastProvider>
+        </AssetsLoader>
       </div>
-      </AssetsLoader>
     </LandscapeGuard>
   );
 }
