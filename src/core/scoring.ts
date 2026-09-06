@@ -566,6 +566,7 @@ function isPinfu(
   decomposition: MeldDecomposition,
   gameContext: GameContext,
 ): boolean {
+  // 必须门清
   const isMenzen = !hand.melds.some((m) => m.isOpen);
   if (!isMenzen) return false;
 
@@ -573,6 +574,7 @@ function isPinfu(
     if (mentsu.type !== "chi") return false;
   }
 
+  // 雀头不能是役牌（场风、自风、三元牌）
   const jantai = decomposition.jantai[0];
   if (jantai && isHonorTile(jantai)) {
     const honorValue = jantai.value as HonorType;
@@ -900,8 +902,13 @@ function isRyanmenWait(hand: Hand, decomposition: MeldDecomposition): boolean {
   const wt = hand.winningTile;
 
   // 检查和了牌是否在雀头中（单骑听牌）
-  const jantai = decomposition.jantai[0];
-  if (jantai && jantai.suit === wt.suit && jantai.value === wt.value) {
+  const { jantai } = decomposition;
+
+  const tanki = jantai.find(
+    (tile) =>
+      tile.suit === wt.suit && tile.value === wt.value && tile.id === wt.id,
+  );
+  if (tanki) {
     return false;
   }
 
@@ -941,8 +948,12 @@ function getWaitFu(
   const wt = hand.winningTile;
 
   // 单骑听牌（和了牌在雀头中）
-  const jantai = decomposition.jantai[0];
-  if (jantai && jantai.suit === wt.suit && jantai.value === wt.value) {
+  const { jantai } = decomposition;
+  const tanki = jantai.find(
+    (tile) =>
+      tile.suit === wt.suit && tile.value === wt.value && tile.id === wt.id,
+  );
+  if (tanki) {
     return { fu: 2, label: "听牌型: 单骑听" };
   }
 
@@ -1202,7 +1213,7 @@ function calculateBasePoints(fu: number, han: number): number {
   return Math.min(base, 2000);
 }
 
-export function getBasePointsName(basePoints: number) : string {
+export function getBasePointsName(basePoints: number): string {
   if (basePoints >= 48000) return "六倍役满";
   if (basePoints >= 40000) return "五倍役满";
   if (basePoints >= 32000) return "四倍役满";
@@ -1213,7 +1224,7 @@ export function getBasePointsName(basePoints: number) : string {
   if (basePoints >= 4000) return "倍满";
   if (basePoints >= 3000) return "跳满";
   if (basePoints >= 2000) return "满贯";
-  return ''
+  return "";
 }
 
 /** 向上取整到 100 */
@@ -1249,6 +1260,7 @@ export function calculateScore(
     decomp: MeldDecomposition;
     yaku: Yaku[];
     formalHan: number;
+    basePoints: number;
   };
   const candidates: CandidateResult[] = [];
 
@@ -1262,6 +1274,8 @@ export function calculateScore(
     const chiitoiFormalHan = chiitoiYaku
       .filter((y) => !isDoraYaku(y.name))
       .reduce((s, y) => s + y.han, 0);
+    const han = chiitoiYaku.reduce((sum, y) => sum + y.han, 0);
+    const basePoints = calculateBasePoints(25, han);
     candidates.push({
       fu: 25,
       fuSubtotalBefore: 25,
@@ -1269,6 +1283,7 @@ export function calculateScore(
       decomp: chiitoiDecomp,
       yaku: chiitoiYaku,
       formalHan: chiitoiFormalHan,
+      basePoints,
     });
   }
 
@@ -1282,6 +1297,8 @@ export function calculateScore(
     const kokushiFormalHan = kokushiYaku
       .filter((y) => !isDoraYaku(y.name))
       .reduce((s, y) => s + y.han, 0);
+    const han = kokushiYaku.reduce((sum, y) => sum + y.han, 0);
+    const basePoints = calculateBasePoints(30, han);
     candidates.push({
       fu: 30,
       fuSubtotalBefore: 30,
@@ -1289,6 +1306,7 @@ export function calculateScore(
       decomp: kokushiDecomp,
       yaku: kokushiYaku,
       formalHan: kokushiFormalHan,
+      basePoints,
     });
   }
 
@@ -1302,6 +1320,9 @@ export function calculateScore(
     const chuurenFormalHan = chuurenYaku
       .filter((y) => !isDoraYaku(y.name))
       .reduce((s, y) => s + y.han, 0);
+
+    const han = chuurenYaku.reduce((sum, y) => sum + y.han, 0);
+    const basePoints = calculateBasePoints(30, han);
     candidates.push({
       fu: 30,
       fuSubtotalBefore: 30,
@@ -1309,6 +1330,7 @@ export function calculateScore(
       decomp: chuurenDecomp,
       yaku: chuurenYaku,
       formalHan: chuurenFormalHan,
+      basePoints,
     });
   }
 
@@ -1340,6 +1362,8 @@ export function calculateScore(
         };
       }
 
+      const han = rawYaku.reduce((sum, y) => sum + y.han, 0);
+      const basePoints = calculateBasePoints(effectiveFu, han);
       candidates.push({
         fu: effectiveFu,
         fuSubtotalBefore: fuSubtotalBefore,
@@ -1347,6 +1371,7 @@ export function calculateScore(
         decomp,
         yaku: rawYaku,
         formalHan,
+        basePoints,
       });
     }
   }
@@ -1358,13 +1383,7 @@ export function calculateScore(
 
   let bestCandidate = candidates[0];
   for (const c of candidates) {
-    if (
-      c.formalHan > bestCandidate.formalHan ||
-      (c.formalHan === bestCandidate.formalHan && c.fu > bestCandidate.fu) ||
-      (c.formalHan === bestCandidate.formalHan &&
-        c.fu === bestCandidate.fu &&
-        c.fuSubtotalBefore > bestCandidate.fuSubtotalBefore)
-    ) {
+    if (c.basePoints > bestCandidate.basePoints) {
       bestCandidate = c;
     }
   }
