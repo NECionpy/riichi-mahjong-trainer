@@ -74,6 +74,7 @@ const KeypadInput: React.FC<KeypadInputProps> = ({
         value={value}
         placeholder={placeholder}
         readOnly
+        className={keypadVisible ? "active" : ""}
         onClick={() => setKeypadVisible(true)}
       />
       {keypadVisible && (
