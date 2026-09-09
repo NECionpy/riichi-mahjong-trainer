@@ -82,8 +82,12 @@ export function shuffleFisherYates(arr: any[]) {
 }
 
 /**
- * 随机整数 [0, max)
+ * 随机整数 [start, end) 范围内的整数
+ * @param end 最大值（不包含）
+ * @param start 最小值（包含）
+ * @returns 随机整数
  */
-export function randomInt(max: number): number {
-  return Math.floor(Math.random() * max);
+export function randomInt(end: number, start: number = 0): number {
+  if(start >= end) return start;
+  return Math.floor(Math.random() * (end - start) + start);
 }

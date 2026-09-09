@@ -21,7 +21,15 @@ import Header from "../../components/Header/Header";
 import CustomModal from "../../components/Modal/CustomModal";
 import RichHand from "../../components/RichHand/RichHand";
 import KeypadInput from "../../components/Input/KeypadInput";
-import { generateFallbackHand, generateRandomGame } from "../../core/pointCalc";
+import {
+  defaultProbabilitySettings,
+  generateFallbackHand,
+  generateRandomGame,
+  ProbabilitySettingsData,
+} from "../../core/pointCalc";
+import SettingModal from "./SettingModal";
+
+const StorageKey = 'PointCalcSetting';
 
 function getWindName(
   wind: "east" | "south" | "west" | "north",
@@ -43,10 +51,12 @@ const PointCalc: React.FC = () => {
   const [winningTile, setWinningTile] = useState<TileType | null>(null);
   const [melds, setMelds] = useState<Meld[]>([]);
   const [isTsumo, setIsTsumo] = useState(false);
+  const [settingData, setSettingData] = useState<ProbabilitySettingsData>(
+    defaultProbabilitySettings,
+  );
 
   const [gameContext, setGameContext] = useState<GameContext>({
     round: "east",
-    roundNumber: 1,
     playerWind: "east",
     isRiichi: false,
     isDoubleRiichi: false,
@@ -65,7 +75,12 @@ const PointCalc: React.FC = () => {
   const [showAnswerRulesModal, setShowAnswerRulesModal] = useState(false);
   const toast = useToast();
   const [showReference, setShowReference] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
+  const handleSettingChange = (newSetting: ProbabilitySettingsData) => {
+    setSettingData(newSetting);
+    localStorage.setItem(StorageKey, JSON.stringify(newSetting));
+  }
   // 校验手牌是否合法
   const checkHandValidity = (
     hand: HandType,
@@ -181,8 +196,8 @@ const PointCalc: React.FC = () => {
     isTsumo: boolean;
   } => {
     let generated = generateFallbackHand();
-    for (let index = 0; index < 5; index++) {
-      generated = generateRandomGame();
+    for (let index = 0; index < 10; index++) {
+      generated = generateRandomGame(settingData);
       const hand = parseHand(generated.handInput, generated.isTsumo);
       const score = calculateScore(hand, generated.gameContext);
       if (!score.isKeiten) return generated;
@@ -210,6 +225,11 @@ const PointCalc: React.FC = () => {
 
   useEffect(() => {
     handleGenerateGame();
+    const setting = localStorage.getItem(StorageKey);
+    if (setting) {
+      const _settingData = JSON.parse(setting);
+      setSettingData(_settingData);
+    }
   }, []);
 
   return (
@@ -225,6 +245,13 @@ const PointCalc: React.FC = () => {
               alt="报点参考"
               title="报点参考"
               onClick={() => setShowReference(true)}
+            />
+            <img
+              src="./images/setting.png"
+              className="info"
+              alt="偏好设置"
+              title="偏好设置"
+              onClick={() => setShowSettings(true)}
             />
             <img
               src="./images/random.png"
@@ -532,6 +559,12 @@ const PointCalc: React.FC = () => {
         <ReferenceModal
           isOpen={showReference}
           onClose={() => setShowReference(false)}
+        />
+        <SettingModal
+          isOpen={showSettings}
+          value={settingData}
+          onChange={handleSettingChange}
+          onClose={() => setShowSettings(false)}
         />
       </div>
     </div>

@@ -22,7 +22,6 @@ import {
 // 游戏上下文
 export interface GameContext {
   round: "east" | "south" | "west"; // 场风
-  roundNumber: number; // 东几局/南几局
   playerWind: "east" | "south" | "west" | "north"; // 自风
   isRiichi: boolean; // 是否立直
   isDoubleRiichi: boolean; // 是否两立直

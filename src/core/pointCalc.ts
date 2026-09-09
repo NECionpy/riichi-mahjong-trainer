@@ -1,4 +1,4 @@
-import { shuffleFisherYates } from "../utils/utils";
+import { randomInt, shuffleFisherYates } from "../utils/utils";
 import { GameContext } from "./scoring";
 import {
   HonorType,
@@ -7,6 +7,99 @@ import {
   TileSuit,
   TileValue,
 } from "./tile";
+
+export interface ProbabilitySettingsData {
+  /**
+   * 最小本场数
+   */
+  honbaMin: number;
+  /**
+   * 最大本场数
+   */
+  honbaMax: number;
+  /**
+   * 自摸率
+   */
+  tsumo: number;
+  /**
+   * 立直率
+   */
+  riichi: number;
+  /**
+   * 双立直率
+   */
+  doubleRiichi: number;
+  /**
+   * 一发率
+   */
+  ippatsu: number;
+  /**
+   * 海底率
+   */
+  haitei: number;
+  /**
+   * 河底率
+   */
+  houtei: number;
+  /**
+   * 岭上率
+   */
+  rinshan: number;
+  /**
+   * 抢杠率
+   */
+  chankan: number;
+  /**
+   * 顺子出现几率
+   */
+  sequence: number;
+  /**
+   * 杠子出现几率
+   */
+  triplet: number;
+  /**
+   * 副露率
+   */
+  meld: number;
+  /**
+   * 暗杠率
+   */
+  ankan: number;
+  /**
+   * 明杠率
+   */
+  minkan: number;
+}
+
+export const defaultProbabilitySettings: ProbabilitySettingsData = {
+  honbaMin: 0,
+  honbaMax: 5,
+  tsumo: 0.5,
+  riichi: 0.3,
+  doubleRiichi: 0.1,
+  ippatsu: 0.3,
+  haitei: 0.15,
+  houtei: 0.15,
+  rinshan: 0.15,
+  chankan: 0.15,
+  sequence: 0.55,
+  triplet: 0.35,
+  meld: 0.6,
+  ankan: 0.33,
+  minkan: 0.33,
+};
+
+export function settingFix(setting: ProbabilitySettingsData) {
+  const _setting = { ...setting };
+
+  for (const key in _setting) {
+    const _key = key as keyof ProbabilitySettingsData;
+    if (typeof _setting[_key] !== "number")
+      _setting[_key] = defaultProbabilitySettings[_key];
+  }
+
+  return _setting;
+}
 
 /** 兜底：生成简单有效手牌 */
 export function generateFallbackHand(): {
@@ -18,7 +111,6 @@ export function generateFallbackHand(): {
     handInput: "123m456p789s1122z1z",
     gameContext: {
       round: "east",
-      roundNumber: 1,
       playerWind: "east",
       isRiichi: false,
       isDoubleRiichi: false,
@@ -39,11 +131,14 @@ export function generateFallbackHand(): {
 // 随机生成手牌和场况
 // ============================================================
 
-export function generateRandomGame(): {
+export function generateRandomGame(
+  probabilitySettings?: ProbabilitySettingsData,
+): {
   handInput: string;
   gameContext: GameContext;
   isTsumo: boolean;
 } {
+  const settings = probabilitySettings || defaultProbabilitySettings;
   const suitChars: Record<TileSuit, string> = {
     man: "m",
     pin: "p",
@@ -86,10 +181,11 @@ export function generateRandomGame(): {
   }
 
   // ---- Step 1: 生成场况（逻辑一致） ----
-  let isRiichi = Math.random() < 0.3;
-  let isDoubleRiichi = !isRiichi && Math.random() < 0.1;
+  let isDoubleRiichi = Math.random() < settings.doubleRiichi;
+  let isRiichi = !isDoubleRiichi && Math.random() < settings.riichi;
+
   // 是否自摸
-  const isTsumo = Math.random() < 0.5;
+  const isTsumo = Math.random() < settings.tsumo;
   // 立直或双立直，一定是门清
   let isMenzen = isRiichi || isDoubleRiichi;
 
@@ -99,14 +195,18 @@ export function generateRandomGame(): {
     isChankan = false;
   if (isTsumo) {
     // 自摸时不能抢杠/河底捞鱼，可以是海底捞月/岭上开花
-    const r = Math.random();
-    if (r < 0.15) isHaitei = true;
-    else if (r < 0.3) isRinshan = true;
+    isHaitei = Math.random() < settings.haitei;
+    if (!isHaitei) {
+      // 海底牌不能岭上
+      isRinshan = Math.random() < settings.rinshan;
+    }
   } else {
     // 荣和时不能海底捞月/岭上开花，可以是河底捞鱼/抢杠
-    const r = Math.random();
-    if (r < 0.15) isHoutei = true;
-    else if (r < 0.9) isChankan = true; // 立直时不能抢杠
+    isHoutei = Math.random() < settings.houtei;
+    if (!isHoutei) {
+      // 河底牌不能抢杠
+      isChankan = Math.random() < settings.chankan;
+    }
   }
 
   // 一发的条件：立直或双立直，且不是岭上开花/抢杠
@@ -114,13 +214,7 @@ export function generateRandomGame(): {
     (isRiichi || isDoubleRiichi) &&
     !isRinshan &&
     !isChankan &&
-    Math.random() < 0.3;
-
-  // 双立直不能海底或河底和牌
-  if (isDoubleRiichi) {
-    isHaitei = false;
-    isHoutei = false;
-  }
+    Math.random() < settings.ippatsu;
 
   // ---- Step 2: 生成4面子+1雀头 ----
   interface GenMentsu {
@@ -138,19 +232,18 @@ export function generateRandomGame(): {
 
   // 如果需要岭上开花，至少需要一个杠子；抢杠需要加杠
   const needsKan = isRinshan;
-  const needsKakan = false;
 
   let attempts = 0;
   while (mentsuList.length < 4 && attempts < 500) {
     attempts++;
 
     let mentsuType: "sequence" | "triplet" | "kan";
-    if ((needsKan || needsKakan) && kanCount === 0 && mentsuList.length >= 3) {
+    if (needsKan && kanCount === 0 && mentsuList.length >= 3) {
       mentsuType = "kan"; // 强制生成一个杠子
     } else {
       const r = Math.random();
-      if (r < 0.55) mentsuType = "sequence";
-      else if (r < 0.9) mentsuType = "triplet";
+      if (r < settings.sequence) mentsuType = "sequence";
+      else if (r < settings.sequence + settings.triplet) mentsuType = "triplet";
       else mentsuType = "kan";
     }
 
@@ -162,7 +255,7 @@ export function generateRandomGame(): {
 
       if (canAdd(suit, nums)) {
         nums.forEach((n) => addCount(suit, n));
-        const isMeld = !isMenzen && Math.random() < 0.3;
+        const isMeld = !isMenzen && Math.random() < settings.meld;
         mentsuList.push({
           type: "sequence",
           suit,
@@ -181,7 +274,7 @@ export function generateRandomGame(): {
 
       if (canAdd(suit, nums)) {
         nums.forEach((n) => addCount(suit, n));
-        const isMeld = !isMenzen && Math.random() < 0.3;
+        const isMeld = !isMenzen && Math.random() < settings.meld;
         mentsuList.push({
           type: "triplet",
           suit,
@@ -203,12 +296,13 @@ export function generateRandomGame(): {
         nums.forEach((n) => addCount(suit, n));
         kanCount++;
         let meldType: MeldType;
-        if (needsKakan) {
-          meldType = "kakan";
-        } else if (isMenzen) {
+        if (isMenzen) {
           meldType = "ankan"; // 立直时只能暗杠
         } else {
-          meldType = Math.random() < 0.5 ? "minkan" : "ankan";
+          const r = Math.random();
+          if (r < settings.ankan) meldType = "ankan";
+          else if (r < settings.ankan + settings.minkan) meldType = "minkan";
+          else meldType = "kakan";
         }
         mentsuList.push({ type: "kan", suit, num, isMeld: true, meldType });
       }
@@ -386,7 +480,7 @@ export function generateRandomGame(): {
 
     if (onlyOne.length === 0) {
       // 没有唯一一张的牌，无法满足抢杠条件，重新生成
-      return generateRandomGame();
+      return generateRandomGame(probabilitySettings);
     }
 
     // 过滤手牌，只保留唯一一张的牌
@@ -395,7 +489,7 @@ export function generateRandomGame(): {
     );
     if (filteredHandTiles.length === 0) {
       // 过滤后手牌为空，无法满足抢杠条件，重新生成
-      return generateRandomGame();
+      return generateRandomGame(probabilitySettings);
     }
 
     // 如果找到了手牌中唯一一张的牌，设置为和牌，移动到手牌的最后
@@ -413,9 +507,6 @@ export function generateRandomGame(): {
   for (const t of handTiles) {
     grouped[t.suit].push(t.num);
   }
-//   for (const s of Object.keys(grouped) as TileSuit[]) {
-//     grouped[s].sort((a, b) => a - b);
-//   }
 
   const suitOrder: TileSuit[] = shuffleFisherYates([
     "man",
@@ -432,8 +523,7 @@ export function generateRandomGame(): {
     }
   }
 
-
-  if(chankanFix) {
+  if (chankanFix) {
     // 如果是抢杠，手牌中唯一一张的牌需要放在最后，确保和牌条件满足
     handStr += `${chankanFix.num}${suitChars[chankanFix.suit]}`;
   }
@@ -449,7 +539,6 @@ export function generateRandomGame(): {
   // ---- Step 6: 组装返回 ----
   const gameContext: GameContext = {
     round: (["east", "south", "west"] as const)[Math.floor(Math.random() * 3)],
-    roundNumber: Math.floor(Math.random() * 4) + 1,
     playerWind: (["east", "south", "west", "north"] as const)[
       Math.floor(Math.random() * 4)
     ],
@@ -462,7 +551,7 @@ export function generateRandomGame(): {
     isChankan,
     doraIndicators,
     uraDoraIndicators,
-    honba: Math.floor(Math.random() * 6), // 0~5本场
+    honba: randomInt(settings.honbaMax + 1, settings.honbaMin), // 0~5本场
   };
 
   return { handInput: handStr, gameContext, isTsumo };
